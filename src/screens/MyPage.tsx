@@ -1,5 +1,5 @@
 // src/screens/MyPage.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,32 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
+  PanResponder,
 } from 'react-native';
 import type { RootStackScreenProps } from '../../App';
 import { useUser } from '../context/UserContext';
+import SideMenu from '../components/SideMenu';
 
 type Props = RootStackScreenProps<'MyPage'>;
 
 const MyPage: React.FC<Props> = ({ navigation }) => {
   const { user } = useUser();
+  const [showSideMenu, setShowSideMenu] = useState(false);
+
+  // 스와이프 제스처 감지
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > 20;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx < -50) {
+          setShowSideMenu(true);
+        }
+      },
+    })
+  ).current;
 
   const handleSettings = () => {
     console.log('설정 클릭');
@@ -27,8 +45,9 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* 헤더 */}
-      <View style={styles.header}>
+      <View style={styles.wrapper} {...panResponder.panHandlers}>
+        {/* 헤더 */}
+        <View style={styles.header}>
         <Text style={styles.headerTitle}>마이페이지</Text>
         <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
           <Text style={styles.settingsIcon}>⚙️</Text>
@@ -144,6 +163,14 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
           <Text style={[styles.navLabel, styles.navLabelActive]}>마이</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 사이드 메뉴 */}
+      <SideMenu
+        visible={showSideMenu}
+        onClose={() => setShowSideMenu(false)}
+        navigation={navigation}
+      />
+      </View>
     </SafeAreaView>
   );
 };
@@ -154,6 +181,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F5EDE4',
+  },
+  wrapper: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

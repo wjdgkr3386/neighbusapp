@@ -12,8 +12,10 @@ import {
   Platform,
   Modal,
   Alert,
+  PanResponder,
 } from 'react-native';
 import type { RootStackScreenProps } from '../../App';
+import SideMenu from '../components/SideMenu';
 
 type Props = RootStackScreenProps<'Chat'>;
 
@@ -160,6 +162,23 @@ const FRIEND_REQUESTS: FriendRequest[] = [
 ];
 
 const ChatScreen: React.FC<Props> = ({ navigation }) => {
+  const [showSideMenu, setShowSideMenu] = useState(false);
+
+  // 스와이프 제스처 감지
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > 20;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx < -50) {
+          setShowSideMenu(true);
+        }
+      },
+    }),
+  ).current;
+
   const [activeTab, setActiveTab] = useState<'friends' | 'chats'>('friends');
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
@@ -304,47 +323,148 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
 
     return (
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.container}
-        >
-          {/* 채팅방 헤더 */}
-          <View style={styles.chatHeader}>
-            <TouchableOpacity onPress={handleBackToList} style={styles.backButton}>
-              <Text style={styles.backIcon}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.chatHeaderTitle}>{chatName}</Text>
-            <View style={styles.headerRight} />
-          </View>
+        <View style={styles.wrapper} {...panResponder.panHandlers}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.container}
+          >
+            {/* 채팅방 헤더 */}
+            <View style={styles.chatHeader}>
+              <TouchableOpacity onPress={handleBackToList} style={styles.backButton}>
+                <Text style={styles.backIcon}>←</Text>
+              </TouchableOpacity>
+              <Text style={styles.chatHeaderTitle}>{chatName}</Text>
+              <View style={styles.headerRight} />
+            </View>
 
-          {/* 메시지 목록 */}
-          <FlatList
-            data={DUMMY_MESSAGES}
-            renderItem={renderMessage}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.messagesList}
-            inverted={false}
-          />
-
-          {/* 메시지 입력 */}
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.messageInput}
-              placeholder="메시지를 입력하세요..."
-              placeholderTextColor="#B8B8B8"
-              value={messageInput}
-              onChangeText={setMessageInput}
-              multiline
+            {/* 메시지 목록 */}
+            <FlatList
+              data={DUMMY_MESSAGES}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.messagesList}
+              inverted={false}
             />
-            <TouchableOpacity
-              style={styles.sendButton}
-              onPress={handleSendMessage}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.sendButtonText}>전송</Text>
+
+            {/* 메시지 입력 */}
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.messageInput}
+                placeholder="메시지를 입력하세요..."
+                placeholderTextColor="#B8B8B8"
+                value={messageInput}
+                onChangeText={setMessageInput}
+                multiline
+              />
+              <TouchableOpacity
+                style={styles.sendButton}
+                onPress={handleSendMessage}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.sendButtonText}>전송</Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+
+          {/* 하단 네비게이션 */}
+          <View style={styles.bottomNav}>
+            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
+              <Text style={styles.navIcon}>🏠</Text>
+              <Text style={styles.navLabel}>홈</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Board')}>
+              <Text style={styles.navIcon}>📋</Text>
+              <Text style={styles.navLabel}>게시판</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
+              <Text style={styles.navIcon}>💬</Text>
+              <Text style={[styles.navLabel, styles.navLabelActive]}>채팅</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
+              <Text style={styles.navIcon}>👤</Text>
+              <Text style={styles.navLabel}>마이</Text>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+
+          {/* 사이드 메뉴 */}
+          <SideMenu
+            visible={showSideMenu}
+            onClose={() => setShowSideMenu(false)}
+            navigation={navigation}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.wrapper} {...panResponder.panHandlers}>
+        {/* 헤더 */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>채팅</Text>
+        </View>
+
+        {/* 탭 네비게이션 */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'friends' && styles.activeTab]}
+            onPress={() => setActiveTab('friends')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === 'friends' && styles.activeTabText]}>
+              친구 목록
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'chats' && styles.activeTab]}
+            onPress={() => setActiveTab('chats')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.tabText, activeTab === 'chats' && styles.activeTabText]}>
+              채팅 리스트
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 친구 목록 또는 채팅방 목록 */}
+        {activeTab === 'friends' ? (
+          <>
+            {/* 친구 추가 및 요청 버튼 */}
+            <View style={styles.friendButtonContainer}>
+              <TouchableOpacity
+                style={styles.friendActionButton}
+                onPress={() => setShowAddFriendModal(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.friendActionIcon}>➕</Text>
+                <Text style={styles.friendActionText}>친구 추가</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.friendActionButton}
+                onPress={() => setShowRequestsModal(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.friendActionIcon}>📬</Text>
+                <Text style={styles.friendActionText}>받은 요청 ({FRIEND_REQUESTS.length})</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={FRIENDS}
+              renderItem={renderFriend}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.friendList}
+            />
+          </>
+        ) : (
+          <FlatList
+            data={CHAT_ROOMS}
+            renderItem={renderChatRoom}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.chatRoomList}
+          />
+        )}
 
         {/* 하단 네비게이션 */}
         <View style={styles.bottomNav}>
@@ -365,200 +485,117 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.navLabel}>마이</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    );
-  }
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>채팅</Text>
-      </View>
-
-      {/* 탭 네비게이션 */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'friends' && styles.activeTab]}
-          onPress={() => setActiveTab('friends')}
-          activeOpacity={0.7}
+        {/* 친구 추가 모달 */}
+        <Modal
+          visible={showAddFriendModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowAddFriendModal(false)}
         >
-          <Text style={[styles.tabText, activeTab === 'friends' && styles.activeTabText]}>
-            친구 목록
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === 'chats' && styles.activeTab]}
-          onPress={() => setActiveTab('chats')}
-          activeOpacity={0.7}
-        >
-          <Text style={[styles.tabText, activeTab === 'chats' && styles.activeTabText]}>
-            채팅 리스트
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>친구 추가</Text>
+              <Text style={styles.modalSubtitle}>친구의 UUID를 입력하세요</Text>
 
-      {/* 친구 목록 또는 채팅방 목록 */}
-      {activeTab === 'friends' ? (
-        <>
-          {/* 친구 추가 및 요청 버튼 */}
-          <View style={styles.friendButtonContainer}>
-            <TouchableOpacity
-              style={styles.friendActionButton}
-              onPress={() => setShowAddFriendModal(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.friendActionIcon}>➕</Text>
-              <Text style={styles.friendActionText}>친구 추가</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.friendActionButton}
-              onPress={() => setShowRequestsModal(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.friendActionIcon}>📬</Text>
-              <Text style={styles.friendActionText}>받은 요청 ({FRIEND_REQUESTS.length})</Text>
-            </TouchableOpacity>
-          </View>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="예: 550e8400-e29b-41d4-a716-446655440000"
+                placeholderTextColor="#B8B8B8"
+                value={friendUuid}
+                onChangeText={setFriendUuid}
+                autoCapitalize="none"
+              />
 
-          <FlatList
-            data={FRIENDS}
-            renderItem={renderFriend}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.friendList}
-          />
-        </>
-      ) : (
-        <FlatList
-          data={CHAT_ROOMS}
-          renderItem={renderChatRoom}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.chatRoomList}
-        />
-      )}
-
-      {/* 하단 네비게이션 */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
-          <Text style={styles.navIcon}>🏠</Text>
-          <Text style={styles.navLabel}>홈</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Board')}>
-          <Text style={styles.navIcon}>📋</Text>
-          <Text style={styles.navLabel}>게시판</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Text style={styles.navIcon}>💬</Text>
-          <Text style={[styles.navLabel, styles.navLabelActive]}>채팅</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
-          <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navLabel}>마이</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 친구 추가 모달 */}
-      <Modal
-        visible={showAddFriendModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowAddFriendModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>친구 추가</Text>
-            <Text style={styles.modalSubtitle}>친구의 UUID를 입력하세요</Text>
-
-            <TextInput
-              style={styles.modalInput}
-              placeholder="예: 550e8400-e29b-41d4-a716-446655440000"
-              placeholderTextColor="#B8B8B8"
-              value={friendUuid}
-              onChangeText={setFriendUuid}
-              autoCapitalize="none"
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalCancelButton]}
-                onPress={() => {
-                  setFriendUuid('');
-                  setShowAddFriendModal(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalCancelText}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalConfirmButton]}
-                onPress={handleAddFriend}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.modalConfirmText}>추가</Text>
-              </TouchableOpacity>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalCancelButton]}
+                  onPress={() => {
+                    setFriendUuid('');
+                    setShowAddFriendModal(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalCancelText}>취소</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalConfirmButton]}
+                  onPress={handleAddFriend}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.modalConfirmText}>추가</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {/* 친구 요청 모달 */}
-      <Modal
-        visible={showRequestsModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowRequestsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.requestsModalContainer}>
-            <View style={styles.requestsHeader}>
-              <Text style={styles.modalTitle}>받은 친구 요청</Text>
-              <TouchableOpacity onPress={() => setShowRequestsModal(false)}>
-                <Text style={styles.closeButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
+        {/* 친구 요청 모달 */}
+        <Modal
+          visible={showRequestsModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowRequestsModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.requestsModalContainer}>
+              <View style={styles.requestsHeader}>
+                <Text style={styles.modalTitle}>받은 친구 요청</Text>
+                <TouchableOpacity onPress={() => setShowRequestsModal(false)}>
+                  <Text style={styles.closeButton}>✕</Text>
+                </TouchableOpacity>
+              </View>
 
-            <FlatList
-              data={FRIEND_REQUESTS}
-              renderItem={({ item }) => (
-                <View style={styles.requestItem}>
-                  <View style={styles.requestAvatar}>
-                    <Text style={styles.requestAvatarText}>{item.name[0]}</Text>
-                  </View>
-                  <View style={styles.requestInfo}>
-                    <Text style={styles.requestName}>{item.name}</Text>
-                    <View style={styles.requestLocation}>
-                      <Text style={styles.locationIcon}>📍</Text>
-                      <Text style={styles.requestLocationText}>{item.location}</Text>
+              <FlatList
+                data={FRIEND_REQUESTS}
+                renderItem={({ item }) => (
+                  <View style={styles.requestItem}>
+                    <View style={styles.requestAvatar}>
+                      <Text style={styles.requestAvatarText}>{item.name[0]}</Text>
                     </View>
-                    <Text style={styles.requestStatus}>{item.status}</Text>
+                    <View style={styles.requestInfo}>
+                      <Text style={styles.requestName}>{item.name}</Text>
+                      <View style={styles.requestLocation}>
+                        <Text style={styles.locationIcon}>📍</Text>
+                        <Text style={styles.requestLocationText}>{item.location}</Text>
+                      </View>
+                      <Text style={styles.requestStatus}>{item.status}</Text>
+                    </View>
+                    <View style={styles.requestButtons}>
+                      <TouchableOpacity
+                        style={styles.acceptButton}
+                        onPress={() => handleAcceptRequest(item)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.acceptButtonText}>수락</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.rejectButton}
+                        onPress={() => handleRejectRequest(item)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.rejectButtonText}>거절</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <View style={styles.requestButtons}>
-                    <TouchableOpacity
-                      style={styles.acceptButton}
-                      onPress={() => handleAcceptRequest(item)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.acceptButtonText}>수락</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.rejectButton}
-                      onPress={() => handleRejectRequest(item)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.rejectButtonText}>거절</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.requestsList}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>받은 친구 요청이 없습니다.</Text>
-              }
-            />
+                )}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.requestsList}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>받은 친구 요청이 없습니다.</Text>
+                }
+              />
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+
+        {/* 사이드 메뉴 */}
+        <SideMenu
+          visible={showSideMenu}
+          onClose={() => setShowSideMenu(false)}
+          navigation={navigation}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -569,6 +606,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F5EDE4',
+  },
+  wrapper: {
+    flex: 1,
   },
   container: {
     flex: 1,

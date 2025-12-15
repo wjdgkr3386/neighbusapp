@@ -9,8 +9,10 @@ import {
   TextInput,
   ScrollView,
   Modal,
+  PanResponder,
 } from 'react-native';
 import type { RootStackScreenProps } from '../../App';
+import SideMenu from '../components/SideMenu';
 
 type Props = RootStackScreenProps<'Board'>;
 
@@ -79,6 +81,22 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showSideMenu, setShowSideMenu] = useState(false);
+
+  // 스와이프 제스처 감지
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > 20;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx < -50) {
+          setShowSideMenu(true);
+        }
+      },
+    })
+  ).current;
 
   const handleSearch = () => {
     console.log('검색:', searchQuery, '카테고리:', selectedCategory);
@@ -86,13 +104,11 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleWritePost = () => {
-    console.log('게시글 작성');
-    // 게시글 작성 화면으로 이동
+    navigation.navigate('BoardWrite');
   };
 
   const handlePostClick = (post: Post) => {
-    console.log('게시글 클릭:', post.id);
-    // 게시글 상세 화면으로 이동
+    navigation.navigate('BoardDetail', { postId: post.id });
   };
 
   const filteredPosts = selectedCategory === '전체'
@@ -101,7 +117,8 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <View style={styles.wrapper} {...panResponder.panHandlers}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         {/* 헤더 */}
         <View style={styles.header}>
           <Text style={styles.title}>게시판</Text>
@@ -267,6 +284,14 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* 사이드 메뉴 */}
+      <SideMenu
+        visible={showSideMenu}
+        onClose={() => setShowSideMenu(false)}
+        navigation={navigation}
+      />
+      </View>
     </SafeAreaView>
   );
 };
@@ -277,6 +302,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F5EDE4',
+  },
+  wrapper: {
+    flex: 1,
   },
   container: {
     flex: 1,

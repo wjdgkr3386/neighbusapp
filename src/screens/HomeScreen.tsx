@@ -9,57 +9,90 @@ import {
   TextInput,
   ScrollView,
   Modal,
+  PanResponder,
 } from 'react-native';
 import type { RootStackScreenProps } from '../../App';
+import SideMenu from '../components/SideMenu';
 
 type Props = RootStackScreenProps<'Home'>;
 
 const CATEGORIES = ['전체', '운동', '문화예술', '요리', '독서', '여행', '봉사', '기타'];
 
+const CLUBS = [
+  {
+    id: '1',
+    name: '마포구 달리기 크루',
+    category: '운동',
+    description: '매주 주말 아침, 한강을 따라 함께 달려요! 초보자도 대환영입니다.',
+    members: 24,
+    location: '서울시 마포구',
+    imageEmoji: '🏃‍♂️',
+  },
+  {
+    id: '2',
+    name: '동네 책방 탐방',
+    category: '독서',
+    description: '숨겨진 동네 책방을 찾아다니며 독서의 즐거움을 나눕니다.',
+    members: 8,
+    location: '서울시 서대문구',
+    imageEmoji: '📚',
+  },
+  {
+    id: '3',
+    name: '유기견 봉사 모임',
+    category: '봉사',
+    description: '주말마다 유기견 보호소에 방문하여 아이들을 돌보고 산책시키는 봉사활동',
+    members: 15,
+    location: '서울시 용산구',
+    imageEmoji: '🐶',
+  },
+];
+
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showSideMenu, setShowSideMenu] = useState(false);
+
+  // 스와이프 제스처 감지
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > 20;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx < -50) {
+          setShowSideMenu(true);
+        }
+      },
+    })
+  ).current;
 
   const handleSearch = () => {
     console.log('검색:', searchQuery, '카테고리:', selectedCategory);
     // 검색 로직 구현
   };
 
-  const handleCreateClub = () => {
-    console.log('동아리 생성');
-    // 동아리 생성 화면으로 이동
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <View style={styles.wrapper} {...panResponder.panHandlers}>
+        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         {/* 헤더 */}
         <View style={styles.header}>
           <Text style={styles.title}>동아리</Text>
           <Text style={styles.subtitle}>관심사로 함께하는 우리 동네 모임</Text>
         </View>
 
-        {/* 카테고리 및 생성 버튼 */}
-        <View style={styles.actionRow}>
-          {/* 카테고리 선택 */}
+        {/* 카테고리 선택 */}
+        <View style={styles.categoryRow}>
           <TouchableOpacity
-            style={styles.categoryButton}
+            style={styles.categoryButtonFull}
             onPress={() => setShowCategoryModal(true)}
             activeOpacity={0.7}
           >
             <Text style={styles.categoryText}>{selectedCategory}</Text>
             <Text style={styles.dropdownIcon}>▼</Text>
-          </TouchableOpacity>
-
-          {/* 동아리 생성 버튼 */}
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={handleCreateClub}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.createIcon}>✏️</Text>
-            <Text style={styles.createText}>동아리 생성</Text>
           </TouchableOpacity>
         </View>
 
@@ -92,23 +125,28 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.clubListSection}>
           <Text style={styles.sectionTitle}>추천 동아리</Text>
 
-          {[1, 2, 3].map((item) => (
-            <View key={item} style={styles.clubCard}>
+          {CLUBS.map((club) => (
+            <TouchableOpacity
+              key={club.id}
+              style={styles.clubCard}
+              activeOpacity={0.8}
+              onPress={() => navigation.navigate('ClubDetail', { clubId: club.id })}
+            >
               <View style={styles.clubImage}>
-                <Text style={styles.clubImageText}>📸</Text>
+                <Text style={styles.clubImageText}>{club.imageEmoji}</Text>
               </View>
               <View style={styles.clubInfo}>
-                <Text style={styles.clubName}>환경 보호 동아리</Text>
-                <Text style={styles.clubCategory}>🏷️ 봉사</Text>
-                <Text style={styles.clubDescription}>
-                  함께 우리 동네를 깨끗하게 만들어요
+                <Text style={styles.clubName}>{club.name}</Text>
+                <Text style={styles.clubCategory}>🏷️ {club.category}</Text>
+                <Text style={styles.clubDescription} numberOfLines={2}>
+                  {club.description}
                 </Text>
                 <View style={styles.clubFooter}>
-                  <Text style={styles.clubMembers}>👥 12명</Text>
-                  <Text style={styles.clubLocation}>📍 서울시 마포구</Text>
+                  <Text style={styles.clubMembers}>👥 {club.members}명</Text>
+                  <Text style={styles.clubLocation}>📍 {club.location}</Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
@@ -173,6 +211,14 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      {/* 사이드 메뉴 */}
+      <SideMenu
+        visible={showSideMenu}
+        onClose={() => setShowSideMenu(false)}
+        navigation={navigation}
+      />
+      </View>
     </SafeAreaView>
   );
 };
@@ -183,6 +229,9 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F5EDE4',
+  },
+  wrapper: {
+    flex: 1,
   },
   container: {
     flex: 1,
@@ -206,14 +255,11 @@ const styles = StyleSheet.create({
     color: '#8B7355',
     textAlign: 'center',
   },
-  actionRow: {
-    flexDirection: 'row',
+  categoryRow: {
     paddingHorizontal: 24,
     marginBottom: 24,
-    gap: 12,
   },
-  categoryButton: {
-    flex: 1,
+  categoryButtonFull: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -232,28 +278,6 @@ const styles = StyleSheet.create({
   dropdownIcon: {
     fontSize: 12,
     color: '#8B7355',
-  },
-  createButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#9B7E5C',
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    shadowColor: '#9B7E5C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  createIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
-  createText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
   searchSection: {
     paddingHorizontal: 24,
