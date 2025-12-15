@@ -16,8 +16,22 @@ import { useUser } from '../context/UserContext';
 
 type Props = RootStackScreenProps<'Login'>;
 
+// 더미 사용자 목록
+const DUMMY_USERS = [
+  {
+    id: 'test',
+    name: '테스트 유저',
+    password: '1234',
+  },
+  {
+    id: 'user1',
+    name: '홍길동',
+    password: 'pass123',
+  },
+];
+
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-  const { user, setUser } = useUser();
+  const { setUser } = useUser();
 
   const [id, setId] = useState('');
   const [pwd, setPwd] = useState('');
@@ -28,13 +42,19 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    // 저장된 사용자 정보와 일치하는지 확인
-    if (user && user.id === id && user.password === pwd) {
-      Alert.alert('로그인 성공', `${user.name}님, 환영합니다!`, [
+    // 더미 사용자 목록에서 일치하는 사용자 찾기
+    const foundUser = DUMMY_USERS.find(
+      (u) => u.id === id && u.password === pwd
+    );
+
+    if (foundUser) {
+      // 로그인 성공 - 사용자 정보 저장
+      setUser(foundUser);
+      Alert.alert('로그인 성공', `${foundUser.name}님, 환영합니다!`, [
         {
           text: '확인',
           onPress: () => {
-            navigation.navigate('Welcome');
+            navigation.navigate('Home');
           },
         },
       ]);
