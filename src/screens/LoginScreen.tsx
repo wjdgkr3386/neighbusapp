@@ -4,15 +4,13 @@ import {
   View,
   Text,
   TextInput,
-  Button,
+  TouchableOpacity,
   StyleSheet,
   Alert,
 } from 'react-native';
 import type { RootStackScreenProps } from '../../App';
 import { useUser } from '../context/UserContext';
 
-// App.tsx의 RootStackParamList에 'Login'을 추가해야 합니다.
-// 예: type RootStackParamList = { Welcome: undefined; Signup: undefined; Login: undefined; };
 type Props = RootStackScreenProps<'Login'>;
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
@@ -33,7 +31,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         {
           text: '확인',
           onPress: () => {
-            // 앱의 메인 화면으로 이동 (여기서는 Welcome으로 가정)
             navigation.navigate('Welcome');
           },
         },
@@ -46,26 +43,85 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  const handleGoogleLogin = () => {
+    Alert.alert('구글 로그인', '구글 로그인 기능은 준비 중입니다.');
+  };
+
+  const handleFindAccount = () => {
+    Alert.alert('안내', '아이디/비밀번호 찾기 기능은 준비 중입니다.');
+  };
+
+  const handleSignup = () => {
+    navigation.navigate('Signup');
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>로그인 페이지</Text>
+      {/* 헤더 영역 */}
+      <View style={styles.header}>
+        <Text style={styles.titleKorean}>함께하는 이웃</Text>
+        <Text style={styles.titleEnglish}>NEIGHBUS</Text>
+        <Text style={styles.subtitle}>로그인하고 동네 친구들을 만나보세요</Text>
+      </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="아이디"
-        value={id}
-        onChangeText={setId}
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="비밀번호"
-        value={pwd}
-        onChangeText={setPwd}
-        secureTextEntry
-      />
+      {/* 로그인 폼 */}
+      <View style={styles.formContainer}>
+        {/* 아이디 입력 */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>아이디</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="아이디를 입력하세요"
+            placeholderTextColor="#B8B8B8"
+            value={id}
+            onChangeText={setId}
+            autoCapitalize="none"
+          />
+        </View>
 
-      <Button title="로그인" onPress={handleLogin} />
+        {/* 비밀번호 입력 */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>비밀번호</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="비밀번호를 입력하세요"
+            placeholderTextColor="#B8B8B8"
+            value={pwd}
+            onChangeText={setPwd}
+            secureTextEntry
+          />
+        </View>
+
+        {/* 로그인 버튼 */}
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={handleLogin}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.loginButtonText}>로그인</Text>
+        </TouchableOpacity>
+
+        {/* 구글 로그인 버튼 */}
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={handleGoogleLogin}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.googleIcon}>G</Text>
+          <Text style={styles.googleButtonText}>구글 아이디로 로그인</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 하단 링크 */}
+      <View style={styles.footer}>
+        <TouchableOpacity onPress={handleFindAccount}>
+          <Text style={styles.footerText}>아이디 / 비밀번호 찾기</Text>
+        </TouchableOpacity>
+        <Text style={styles.divider}>|</Text>
+        <TouchableOpacity onPress={handleSignup}>
+          <Text style={styles.footerText}>회원가입</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -75,20 +131,108 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    justifyContent: 'flex-start',
+    backgroundColor: '#F5EDE4',
+    paddingHorizontal: 24,
+    justifyContent: 'center',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 24,
+  header: {
+    alignItems: 'center',
+    marginBottom: 50,
+  },
+  titleKorean: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#5C4A3A',
+    marginBottom: 4,
+  },
+  titleEnglish: {
+    fontSize: 40,
+    fontWeight: '700',
+    color: '#5C4A3A',
+    marginBottom: 16,
+    letterSpacing: 2,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#8B7355',
+    marginTop: 8,
+  },
+  formContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#5C4A3A',
+    marginBottom: 8,
   },
   input: {
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#ccc',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    marginBottom: 12,
+    borderColor: '#E5E5E5',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#333333',
+  },
+  loginButton: {
+    backgroundColor: '#9B7E5C',
+    borderRadius: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  googleButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 8,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4285F4',
+    marginRight: 8,
+  },
+  googleButtonText: {
+    color: '#5C4A3A',
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#8B7355',
+  },
+  divider: {
+    fontSize: 14,
+    color: '#8B7355',
+    marginHorizontal: 12,
   },
 });

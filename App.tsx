@@ -29,7 +29,12 @@ function App(): React.JSX.Element {
   return (
     <UserProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Welcome">
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
           <Stack.Screen
             name="Welcome"
             component={WelcomeScreen}
@@ -39,11 +44,6 @@ function App(): React.JSX.Element {
             name="Signup"
             component={SignupScreen}
             options={{ title: '회원가입' }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ title: '로그인' }}
           />
         </Stack.Navigator>
       </NavigationContainer>
