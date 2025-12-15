@@ -1,70 +1,54 @@
-// App.tsx 최종 수정 코드
-
-import {
-  NavigationContainer,
-  ParamListBase,
-  RouteProp,
-} from '@react-navigation/native';
+// App.tsx
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
-  NativeStackNavigationProp,
+  NativeStackScreenProps,
 } from '@react-navigation/native-stack';
-import { StatusBar, StyleSheet, useColorScheme } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-// **1. 화면 컴포넌트 Import**
-import SignupScreen from './src/screens/SignupScreen';
+import { UserProvider } from './src/context/UserContext';
+
 import WelcomeScreen from './src/screens/WelcomeScreen';
+import SignupScreen from './src/screens/SignupScreen';
+import LoginScreen from './src/screens/LoginScreen';
 
-// 🚨🚨🚨 UserContext Import 추가 🚨🚨🚨
-// 경로에 주의하세요. 'src/context/UserContext'에서 가져와야 합니다.
-import { UserProvider } from './src/context/UserContext'; 
-
-// **2. Route 목록 및 타입 정의 (필수)**
+// 네비게이션 스택에 포함될 화면들의 타입을 정의합니다.
 export type RootStackParamList = {
   Welcome: undefined;
   Signup: undefined;
+  Login: undefined;
 };
 
-// **3. 개별 화면의 Props 타입 정의 (필수)**
-export type RootStackScreenProps<T extends keyof RootStackParamList> = {
-  navigation: NativeStackNavigationProp<RootStackParamList, T>;
-  route: RouteProp<RootStackParamList, T>;
-};
+// 각 화면 컴포넌트에서 navigation, route prop의 타입을 지정하기 위한 헬퍼 타입을 만듭니다.
+export type RootStackScreenProps<T extends keyof RootStackParamList> =
+  NativeStackScreenProps<RootStackParamList, T>;
 
-const RootStack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+function App(): React.JSX.Element {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      
-      {/* 🚨🚨🚨 UserProvider로 NavigationContainer 감싸기 🚨🚨🚨 */}
-      <UserProvider>
-        <NavigationContainer>
-          <RootStack.Navigator initialRouteName="Welcome">
-            <RootStack.Screen
-              name="Welcome"
-              component={WelcomeScreen}
-              options={{ title: '환영합니다' }}
-            />
-            <RootStack.Screen
-              name="Signup"
-              component={SignupScreen}
-              options={{ title: '회원가입' }}
-            />
-          </RootStack.Navigator>
-        </NavigationContainer>
-      </UserProvider>
-      
-    </SafeAreaProvider>
+    <UserProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Welcome"
+            component={WelcomeScreen}
+            options={{ title: '환영합니다' }}
+          />
+          <Stack.Screen
+            name="Signup"
+            component={SignupScreen}
+            options={{ title: '회원가입' }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </UserProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  // 스타일은 그대로 유지
-});
 
 export default App;
