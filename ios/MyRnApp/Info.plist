@@ -28,7 +28,10 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
+<<<<<<< HEAD
 	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->
+=======
+>>>>>>> b1cd7c2d7cb13891ae8f90e3ca711304af84c69b
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
@@ -36,6 +39,11 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+<<<<<<< HEAD
+=======
+	<key>RCTNewArchEnabled</key>
+	<true/>
+>>>>>>> b1cd7c2d7cb13891ae8f90e3ca711304af84c69b
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
