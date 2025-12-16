@@ -1,8 +1,14 @@
 npm install @react-navigation/native @react-navigation/native-stack
 npm install react-native-screens react-native-safe-area-context
 npm install react-native-calendars
+<<<<<<< HEAD
 npm install @react-native-clipboard/clipboard
 
 # 안드로이드 에뮬 강제 실행
 [SDK 에뮬주소] @Small_Phone -gpu swiftshader_indirect
 C:\ad_sdk/emulator/emulator @Small_Phone -gpu swiftshader_indirect
+=======
+
+# 안드로이드 에뮬 강제 실행
+[SDK 에뮬주소] @Small_Phone -gpu swiftshader_indirect
+>>>>>>> 893200d2c84aa5a23cdbafbba70ee2ca1d559bc3
