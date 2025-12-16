@@ -5,12 +5,12 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   ScrollView,
   Modal,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 
 type Props = RootStackScreenProps<'BoardWrite'>;

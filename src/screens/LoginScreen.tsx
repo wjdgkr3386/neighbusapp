@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import { useUser } from '../context/UserContext';
 
@@ -20,11 +20,13 @@ type Props = RootStackScreenProps<'Login'>;
 const DUMMY_USERS = [
   {
     id: 'test',
+    uuid: '550e8400-e29b-41d4-a716-446655440099',
     name: '테스트 유저',
     password: '1234',
   },
   {
     id: 'user1',
+    uuid: '550e8400-e29b-41d4-a716-446655440098',
     name: '홍길동',
     password: 'pass123',
   },
