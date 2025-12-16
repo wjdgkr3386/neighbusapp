@@ -37,6 +37,14 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         />
       </View>
 
+      <View style={styles.buttonContainer}>
+        {/* 메인 페이지로 이동 */}
+        <Button
+          title="메인 페이지로 이동"
+          onPress={() => navigation.navigate('Main')}
+        />
+      </View>
+
       {user && (
         <View style={styles.section}>
           <Text style={styles.info}>
