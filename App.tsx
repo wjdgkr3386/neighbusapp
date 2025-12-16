@@ -1,0 +1,134 @@
+// App.tsx
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNativeStackNavigator,
+  NativeStackScreenProps,
+} from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { UserProvider } from './src/context/UserContext';
+
+import WelcomeScreen from './src/screens/WelcomeScreen';
+import SignupScreen from './src/screens/SignupScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import MyPage from './src/screens/MyPage';
+import ChatScreen from './src/screens/ChatScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import BoardScreen from './src/screens/BoardScreen';
+import BoardWriteScreen from './src/screens/BoardWriteScreen';
+import ClubDetailScreen from './src/screens/ClubDetailScreen';
+import MeetingDetailScreen from './src/screens/MeetingDetailScreen';
+import CreateMeetingScreen from './src/screens/CreateMeetingScreen';
+import BoardDetailScreen from './src/screens/BoardDetailScreen';
+import NoticeListScreen from './src/screens/NoticeListScreen';
+import NoticeDetailScreen from './src/screens/NoticeDetailScreen';
+
+// 네비게이션 스택에 포함될 화면들의 타입을 정의합니다.
+export type RootStackParamList = {
+  Welcome: undefined;
+  Signup: undefined;
+  Login: undefined;
+  MyPage: undefined;
+  Chat: undefined;
+  Home: undefined;
+  Board: undefined;
+  BoardWrite: undefined;
+  ClubDetail: { clubId: string };
+  MeetingDetail: { meetingId: string; date: string };
+  CreateMeeting: undefined;
+  BoardDetail: { postId: string };
+  NoticeList: undefined;
+  NoticeDetail: { noticeId: string };
+};
+
+// 각 화면 컴포넌트에서 navigation, route prop의 타입을 지정하기 위한 헬퍼 타입을 만듭니다.
+export type RootStackScreenProps<T extends keyof RootStackParamList> =
+  NativeStackScreenProps<RootStackParamList, T>;
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function App(): React.JSX.Element {
+  return (
+    <SafeAreaProvider>
+      <UserProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Board"
+            component={BoardScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BoardWrite"
+            component={BoardWriteScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Welcome"
+            component={WelcomeScreen}
+            options={{ title: '환영합니다' }}
+          />
+          <Stack.Screen
+            name="Signup"
+            component={SignupScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="MyPage"
+            component={MyPage}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Chat"
+            component={ChatScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ClubDetail"
+            component={ClubDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="MeetingDetail"
+            component={MeetingDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CreateMeeting"
+            component={CreateMeetingScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="BoardDetail"
+            component={BoardDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NoticeList"
+            component={NoticeListScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NoticeDetail"
+            component={NoticeDetailScreen}
+            options={{ headerShown: false }}
+          />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </UserProvider>
+    </SafeAreaProvider>
+  );
+}
+
+export default App;
