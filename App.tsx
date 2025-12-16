@@ -11,12 +11,14 @@ import { UserProvider } from './src/context/UserContext';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import MainScreen from './src/screens/MainScreen';
 
 // 네비게이션 스택에 포함될 화면들의 타입을 정의합니다.
 export type RootStackParamList = {
   Welcome: undefined;
   Signup: undefined;
   Login: undefined;
+  Main: undefined;
 };
 
 // 각 화면 컴포넌트에서 navigation, route prop의 타입을 지정하기 위한 헬퍼 타입을 만듭니다.
@@ -44,6 +46,11 @@ function App(): React.JSX.Element {
             name="Signup"
             component={SignupScreen}
             options={{ title: '회원가입' }}
+          />
+          <Stack.Screen
+            name="Main"
+            component={MainScreen}
+            options={{ title: '메인' }}
           />
         </Stack.Navigator>
       </NavigationContainer>
