@@ -1,4 +1,3 @@
-// src/screens/LoginScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -12,25 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
+import { BASE_URL } from '../config'; // config 파일 위치 확인 필요
 import { useUser } from '../context/UserContext';
 
 type Props = RootStackScreenProps<'Login'>;
-
-// 더미 사용자 목록
-const DUMMY_USERS = [
-  {
-    id: 'test',
-    uuid: '550e8400-e29b-41d4-a716-446655440099',
-    name: '테스트 유저',
-    password: '1234',
-  },
-  {
-    id: 'user1',
-    uuid: '550e8400-e29b-41d4-a716-446655440098',
-    name: '홍길동',
-    password: 'pass123',
-  },
-];
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const { setUser } = useUser();
@@ -38,33 +22,42 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [id, setId] = useState('');
   const [pwd, setPwd] = useState('');
 
-  const handleLogin = () => {
+  // ★ 서버 통신 로그인 함수
+  const handleLogin = async () => {
+    // 1. 유효성 검사
     if (!id || !pwd) {
       Alert.alert('입력 오류', '아이디와 비밀번호를 모두 입력해 주세요.');
       return;
     }
 
-    // 더미 사용자 목록에서 일치하는 사용자 찾기
-    const foundUser = DUMMY_USERS.find(
-      (u) => u.id === id && u.password === pwd
-    );
+    try {
+      // 2. 서버로 로그인 요청 전송
+      // Java Controller가 받는 키 이름(username, password)과 일치시켜야 함
+      const response = await fetch(`${BASE_URL}/api/mobile/account/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: id,  // 서버: username, 앱변수: id
+          password: pwd, // 서버: password, 앱변수: pwd
+        }),
+      });
 
-    if (foundUser) {
-      // 로그인 성공 - 사용자 정보 저장
-      setUser(foundUser);
-      Alert.alert('로그인 성공', `${foundUser.name}님, 환영합니다!`, [
-        {
-          text: '확인',
-          onPress: () => {
-            navigation.navigate('Home');
-          },
-        },
-      ]);
-    } else {
-      Alert.alert(
-        '로그인 실패',
-        '아이디 또는 비밀번호가 일치하지 않습니다.'
-      );
+      const result = await response.json();
+
+      // 3. 결과 처리
+      if (result.status === 1) {
+        // 성공: Context에 유저 정보 저장 후 홈으로 이동
+        setUser(result.user);
+        Alert.alert('로그인 성공', `${result.user.name}님 환영합니다!`, [
+          { text: '확인', onPress: () => navigation.navigate('Home') }
+        ]);
+      } else {
+        // 실패: 서버에서 보낸 메시지 출력
+        Alert.alert('로그인 실패', result.message || '아이디 또는 비밀번호를 확인해주세요.');
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      Alert.alert('오류', '서버와 통신 중 문제가 발생했습니다.');
     }
   };
 
