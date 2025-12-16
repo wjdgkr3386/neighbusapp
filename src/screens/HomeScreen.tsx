@@ -5,14 +5,15 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   ScrollView,
   Modal,
   PanResponder,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
+import BottomNavBar from '../components/BottomNavBar';
 
 type Props = RootStackScreenProps<'Home'>;
 
@@ -152,24 +153,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       </ScrollView>
 
       {/* 하단 네비게이션 */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Text style={styles.navIcon}>🏠</Text>
-          <Text style={[styles.navLabel, styles.navLabelActive]}>홈</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Board')}>
-          <Text style={styles.navIcon}>📋</Text>
-          <Text style={styles.navLabel}>게시판</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Chat')}>
-          <Text style={styles.navIcon}>💬</Text>
-          <Text style={styles.navLabel}>채팅</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
-          <Text style={styles.navIcon}>👤</Text>
-          <Text style={styles.navLabel}>마이</Text>
-        </TouchableOpacity>
-      </View>
+      <BottomNavBar currentScreen="Home" />
 
       {/* 카테고리 선택 모달 */}
       <Modal
@@ -398,34 +382,6 @@ const styles = StyleSheet.create({
   clubLocation: {
     fontSize: 12,
     color: '#B8B8B8',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-    paddingVertical: 8,
-    paddingBottom: 12,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  navItemActive: {
-    // 활성 상태
-  },
-  navIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  navLabel: {
-    fontSize: 11,
-    color: '#8B7355',
-  },
-  navLabelActive: {
-    color: '#5C4A3A',
-    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,

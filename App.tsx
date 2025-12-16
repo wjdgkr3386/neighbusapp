@@ -5,6 +5,7 @@ import {
   createNativeStackNavigator,
   NativeStackScreenProps,
 } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { UserProvider } from './src/context/UserContext';
 
@@ -20,6 +21,8 @@ import ClubDetailScreen from './src/screens/ClubDetailScreen';
 import MeetingDetailScreen from './src/screens/MeetingDetailScreen';
 import CreateMeetingScreen from './src/screens/CreateMeetingScreen';
 import BoardDetailScreen from './src/screens/BoardDetailScreen';
+import NoticeListScreen from './src/screens/NoticeListScreen';
+import NoticeDetailScreen from './src/screens/NoticeDetailScreen';
 
 // 네비게이션 스택에 포함될 화면들의 타입을 정의합니다.
 export type RootStackParamList = {
@@ -35,6 +38,8 @@ export type RootStackParamList = {
   MeetingDetail: { meetingId: string; date: string };
   CreateMeeting: undefined;
   BoardDetail: { postId: string };
+  NoticeList: undefined;
+  NoticeDetail: { noticeId: string };
 };
 
 // 각 화면 컴포넌트에서 navigation, route prop의 타입을 지정하기 위한 헬퍼 타입을 만듭니다.
@@ -45,9 +50,10 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App(): React.JSX.Element {
   return (
-    <UserProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login">
+    <SafeAreaProvider>
+      <UserProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Login">
           <Stack.Screen
             name="Login"
             component={LoginScreen}
@@ -108,9 +114,20 @@ function App(): React.JSX.Element {
             component={BoardDetailScreen}
             options={{ headerShown: false }}
           />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </UserProvider>
+          <Stack.Screen
+            name="NoticeList"
+            component={NoticeListScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="NoticeDetail"
+            component={NoticeDetailScreen}
+            options={{ headerShown: false }}
+          />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </UserProvider>
+    </SafeAreaProvider>
   );
 }
 

@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TextInput,
   KeyboardAvoidingView,
@@ -14,8 +13,12 @@ import {
   Alert,
   PanResponder,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Clipboard from '@react-native-clipboard/clipboard';
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
+import { useUser } from '../context/UserContext';
+import BottomNavBar from '../components/BottomNavBar';
 
 type Props = RootStackScreenProps<'Chat'>;
 
@@ -162,6 +165,7 @@ const FRIEND_REQUESTS: FriendRequest[] = [
 ];
 
 const ChatScreen: React.FC<Props> = ({ navigation }) => {
+  const { user } = useUser();
   const [showSideMenu, setShowSideMenu] = useState(false);
 
   // 스와이프 제스처 감지
@@ -232,6 +236,15 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   const handleRejectRequest = (request: FriendRequest) => {
     Alert.alert('알림', `${request.name}님의 친구 요청을 거절했습니다.`);
     // 실제로는 요청 목록에서 제거하는 로직 필요
+  };
+
+  const handleCopyMyUuid = () => {
+    if (user?.uuid) {
+      Clipboard.setString(user.uuid);
+      Alert.alert('복사 완료', '내 아이디가 클립보드에 복사되었습니다.');
+    } else {
+      Alert.alert('오류', '사용자 정보를 찾을 수 없습니다.');
+    }
   };
 
   const renderFriend = ({ item }: { item: Friend }) => (
@@ -367,24 +380,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           </KeyboardAvoidingView>
 
           {/* 하단 네비게이션 */}
-          <View style={styles.bottomNav}>
-            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
-              <Text style={styles.navIcon}>🏠</Text>
-              <Text style={styles.navLabel}>홈</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Board')}>
-              <Text style={styles.navIcon}>📋</Text>
-              <Text style={styles.navLabel}>게시판</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-              <Text style={styles.navIcon}>💬</Text>
-              <Text style={[styles.navLabel, styles.navLabelActive]}>채팅</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
-              <Text style={styles.navIcon}>👤</Text>
-              <Text style={styles.navLabel}>마이</Text>
-            </TouchableOpacity>
-          </View>
+          <BottomNavBar currentScreen="Chat" />
 
           {/* 사이드 메뉴 */}
           <SideMenu
@@ -467,24 +463,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         )}
 
         {/* 하단 네비게이션 */}
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
-            <Text style={styles.navIcon}>🏠</Text>
-            <Text style={styles.navLabel}>홈</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Board')}>
-            <Text style={styles.navIcon}>📋</Text>
-            <Text style={styles.navLabel}>게시판</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-            <Text style={styles.navIcon}>💬</Text>
-            <Text style={[styles.navLabel, styles.navLabelActive]}>채팅</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyPage')}>
-            <Text style={styles.navIcon}>👤</Text>
-            <Text style={styles.navLabel}>마이</Text>
-          </TouchableOpacity>
-        </View>
+        <BottomNavBar currentScreen="Chat" />
 
         {/* 친구 추가 모달 */}
         <Modal
@@ -506,6 +485,15 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
                 onChangeText={setFriendUuid}
                 autoCapitalize="none"
               />
+
+              <TouchableOpacity
+                style={styles.copyMyIdButton}
+                onPress={handleCopyMyUuid}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.copyMyIdIcon}>📋</Text>
+                <Text style={styles.copyMyIdText}>내 아이디 복사하기</Text>
+              </TouchableOpacity>
 
               <View style={styles.modalButtons}>
                 <TouchableOpacity
@@ -909,34 +897,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E5E5',
-    paddingVertical: 8,
-    paddingBottom: 12,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  navItemActive: {
-    // 활성 상태
-  },
-  navIcon: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  navLabel: {
-    fontSize: 11,
-    color: '#8B7355',
-  },
-  navLabelActive: {
-    color: '#5C4A3A',
-    fontWeight: '600',
-  },
   // 모달 스타일
   modalOverlay: {
     flex: 1,
@@ -975,7 +935,28 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 13,
     color: '#333333',
+    marginBottom: 12,
+  },
+  copyMyIdButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5EDE4',
+    borderWidth: 1.5,
+    borderColor: '#9B7E5C',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     marginBottom: 20,
+  },
+  copyMyIdIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  copyMyIdText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#9B7E5C',
   },
   modalButtons: {
     flexDirection: 'row',

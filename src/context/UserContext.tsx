@@ -8,6 +8,7 @@ import React, {
 
 type User = {
   id: string;
+  uuid: string;
   name: string;
   password: string;
 } | null;
