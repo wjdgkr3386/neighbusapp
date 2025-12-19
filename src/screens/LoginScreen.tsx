@@ -17,10 +17,10 @@ import { useUser } from '../context/UserContext';
 type Props = RootStackScreenProps<'Login'>;
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-  const { setUser } = useUser();
-
   const [id, setId] = useState('');
   const [pwd, setPwd] = useState('');
+  const { setUser, setToken } = useUser();
+  
 
   // ★ 서버 통신 로그인 함수
   const handleLogin = async () => {
@@ -42,6 +42,8 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
         if (result.status === 1) {
           // 성공: Context에 유저 정보 저장 후 홈으로 이동
           setUser(result.user);
+          setToken(result.token);
+          
           Alert.alert('로그인 성공', `${result.user.name}님 환영합니다!`, [
             { text: '확인', onPress: () => navigation.navigate('Home') },
           ]);
