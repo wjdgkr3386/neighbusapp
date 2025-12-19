@@ -24,41 +24,39 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   // ★ 서버 통신 로그인 함수
   const handleLogin = async () => {
-    // 1. 유효성 검사
+    // 유효성 검사
     if (!id || !pwd) {
       Alert.alert('입력 오류', '아이디와 비밀번호를 모두 입력해 주세요.');
       return;
     }
-
-    try {
-      // 2. 서버로 로그인 요청 전송
-      // Java Controller가 받는 키 이름(username, password)과 일치시켜야 함
-      const response = await fetch(`${BASE_URL}/api/mobile/account/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: id,  // 서버: username, 앱변수: id
-          password: pwd, // 서버: password, 앱변수: pwd
-        }),
+    Alert.alert("여기 옴");
+    Alert.alert(`${BASE_URL}`);
+    fetch(`${BASE_URL}/api/mobile/account/mobileLogin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: id,  // 서버: username
+        password: pwd, // 서버: password
+      }),
+    })
+      .then((response) => response.json()) // 응답을 JSON으로 파싱
+      .then((result) => {
+        if (result.status === 1) {
+          // 성공: Context에 유저 정보 저장 후 홈으로 이동
+          setUser(result.user);
+          Alert.alert('로그인 성공', `${result.user.name}님 환영합니다!`, [
+            { text: '확인', onPress: () => navigation.navigate('Home') },
+          ]);
+        } else {
+          // 실패: 서버 메시지 출력
+          Alert.alert('로그인 실패', result.message || '아이디 또는 비밀번호를 확인해주세요.');
+        }
+      })
+      .catch((error) => {
+        // 에러 처리
+        console.error("Login Error:", error);
+        Alert.alert('오류', '서버와 통신 중 문제가 발생했습니다.');
       });
-
-      const result = await response.json();
-
-      // 3. 결과 처리
-      if (result.status === 1) {
-        // 성공: Context에 유저 정보 저장 후 홈으로 이동
-        setUser(result.user);
-        Alert.alert('로그인 성공', `${result.user.name}님 환영합니다!`, [
-          { text: '확인', onPress: () => navigation.navigate('Home') }
-        ]);
-      } else {
-        // 실패: 서버에서 보낸 메시지 출력
-        Alert.alert('로그인 실패', result.message || '아이디 또는 비밀번호를 확인해주세요.');
-      }
-    } catch (error) {
-      console.error("Login Error:", error);
-      Alert.alert('오류', '서버와 통신 중 문제가 발생했습니다.');
-    }
   };
 
   const handleGoogleLogin = () => {
