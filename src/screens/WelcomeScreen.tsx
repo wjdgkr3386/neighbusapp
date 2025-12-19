@@ -41,7 +41,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
         {/* 메인 페이지로 이동 */}
         <Button
           title="메인 페이지로 이동"
-          onPress={() => navigation.navigate('Main')}
+          onPress={() => navigation.navigate('Home')}
         />
       </View>
 
