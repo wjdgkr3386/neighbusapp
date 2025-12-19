@@ -1,4 +1,4 @@
-// src/screens/BoardScreen.tsx
+// src/screens/FreeBoardScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -7,17 +7,15 @@ import {
   StyleSheet,
   TextInput,
   ScrollView,
-  Modal,
   PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
+import theme from '../styles/theme';
 
-type Props = RootStackScreenProps<'Board'>;
-
-const CATEGORIES = ['전체', '갤러리', '게시판'];
+type Props = RootStackScreenProps<'FreeBoard'>;
 
 type Post = {
   id: string;
@@ -78,10 +76,8 @@ const POSTS: Post[] = [
   },
 ];
 
-const BoardScreen: React.FC<Props> = ({ navigation }) => {
-  const [selectedCategory, setSelectedCategory] = useState('전체');
+const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showSideMenu, setShowSideMenu] = useState(false);
 
   // 스와이프 제스처 감지
@@ -100,21 +96,19 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
   ).current;
 
   const handleSearch = () => {
-    console.log('검색:', searchQuery, '카테고리:', selectedCategory);
+    console.log('검색:', searchQuery);
     // 검색 로직 구현
   };
 
   const handleWritePost = () => {
-    navigation.navigate('BoardWrite');
+    navigation.navigate('FreeBoardWrite');
   };
 
   const handlePostClick = (post: Post) => {
-    navigation.navigate('BoardDetail', { postId: post.id });
+    navigation.navigate('FreeBoardDetail', { postId: post.id });
   };
 
-  const filteredPosts = selectedCategory === '전체'
-    ? POSTS
-    : POSTS.filter(post => post.category === selectedCategory);
+  const filteredPosts = POSTS.filter(post => post.category !== '공지');
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -122,23 +116,12 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         {/* 헤더 */}
         <View style={styles.header}>
-          <Text style={styles.title}>게시판</Text>
+          <Text style={styles.title}>자유게시판</Text>
           <Text style={styles.subtitle}>우리 동네 이야기를 나눠요</Text>
         </View>
 
-        {/* 카테고리 및 작성 버튼 */}
+        {/* 글쓰기 버튼 */}
         <View style={styles.actionRow}>
-          {/* 카테고리 선택 */}
-          <TouchableOpacity
-            style={styles.categoryButton}
-            onPress={() => setShowCategoryModal(true)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.categoryText}>{selectedCategory}</Text>
-            <Text style={styles.dropdownIcon}>▼</Text>
-          </TouchableOpacity>
-
-          {/* 글쓰기 버튼 */}
           <TouchableOpacity
             style={styles.createButton}
             onPress={handleWritePost}
@@ -226,48 +209,7 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
       </ScrollView>
 
       {/* 하단 네비게이션 */}
-      <BottomNavBar currentScreen="Board" />
-
-      {/* 카테고리 선택 모달 */}
-      <Modal
-        visible={showCategoryModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowCategoryModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowCategoryModal(false)}
-        >
-          <View style={styles.categoryModalContainer}>
-            <Text style={styles.categoryModalTitle}>카테고리 선택</Text>
-            {CATEGORIES.map((category) => (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  styles.categoryOption,
-                  selectedCategory === category && styles.categoryOptionActive,
-                ]}
-                onPress={() => {
-                  setSelectedCategory(category);
-                  setShowCategoryModal(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.categoryOptionText,
-                    selectedCategory === category && styles.categoryOptionTextActive,
-                  ]}
-                >
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <BottomNavBar currentScreen="FreeBoard" />
 
       {/* 사이드 메뉴 */}
       <SideMenu
@@ -280,12 +222,12 @@ const BoardScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-export default BoardScreen;
+export default FreeBoardScreen;
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F5EDE4',
+    backgroundColor: theme.colors.bodyBg,
   },
   wrapper: {
     flex: 1,
@@ -304,49 +246,29 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: '700',
-    color: '#5C4A3A',
+    color: theme.colors.textPrimary,
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 14,
-    color: '#8B7355',
+    color: theme.colors.textSecondary,
     textAlign: 'center',
   },
   actionRow: {
     flexDirection: 'row',
+    justifyContent: 'flex-end',
     paddingHorizontal: 24,
     marginBottom: 24,
     gap: 12,
   },
-  categoryButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#D8D0C8',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  categoryText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#5C4A3A',
-  },
-  dropdownIcon: {
-    fontSize: 12,
-    color: '#8B7355',
-  },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#9B7E5C',
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     paddingHorizontal: 20,
     paddingVertical: 14,
-    shadowColor: '#9B7E5C',
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -359,7 +281,7 @@ const styles = StyleSheet.create({
   createText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.colors.white,
   },
   searchSection: {
     paddingHorizontal: 24,
@@ -368,7 +290,7 @@ const styles = StyleSheet.create({
   searchLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#5C4A3A',
+    color: theme.colors.textPrimary,
     marginBottom: 10,
   },
   searchContainer: {
@@ -379,9 +301,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.cardBg,
     borderWidth: 1.5,
-    borderColor: '#D8D0C8',
+    borderColor: theme.colors.borderColor,
     borderRadius: 10,
     paddingHorizontal: 16,
   },
@@ -392,17 +314,17 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#333333',
+    color: theme.colors.textPrimary,
     paddingVertical: 14,
   },
   searchButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#9B7E5C',
+    backgroundColor: theme.colors.primary,
     borderRadius: 10,
     paddingHorizontal: 24,
     paddingVertical: 14,
-    shadowColor: '#9B7E5C',
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -415,7 +337,7 @@ const styles = StyleSheet.create({
   searchButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: theme.colors.white,
   },
   postListSection: {
     paddingHorizontal: 24,
@@ -429,14 +351,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#5C4A3A',
+    color: theme.colors.textPrimary,
   },
   postCount: {
     fontSize: 14,
-    color: '#8B7355',
+    color: theme.colors.textSecondary,
   },
   postCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.cardBg,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -445,6 +367,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
   },
   postHeader: {
     flexDirection: 'row',
@@ -453,7 +377,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   categoryBadge: {
-    backgroundColor: '#F5EDE4',
+    backgroundColor: theme.colors.bodyBg,
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -461,21 +385,21 @@ const styles = StyleSheet.create({
   categoryBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#9B7E5C',
+    color: theme.colors.primary,
   },
   postDate: {
     fontSize: 12,
-    color: '#B8B8B8',
+    color: theme.colors.textLight,
   },
   postTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#5C4A3A',
+    color: theme.colors.textPrimary,
     marginBottom: 6,
   },
   postContent: {
     fontSize: 14,
-    color: '#8B7355',
+    color: theme.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -485,7 +409,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: theme.colors.borderColor,
   },
   postAuthor: {
     flexDirection: 'row',
@@ -498,7 +422,7 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#5C4A3A',
+    color: theme.colors.textPrimary,
   },
   postStats: {
     flexDirection: 'row',
@@ -514,48 +438,6 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 12,
-    color: '#B8B8B8',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryModalContainer: {
-    width: '80%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  categoryModalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#5C4A3A',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  categoryOption: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  categoryOptionActive: {
-    backgroundColor: '#F5EDE4',
-  },
-  categoryOptionText: {
-    fontSize: 15,
-    color: '#5C4A3A',
-    textAlign: 'center',
-  },
-  categoryOptionTextActive: {
-    fontWeight: '600',
-    color: '#9B7E5C',
+    color: theme.colors.textLight,
   },
 });
