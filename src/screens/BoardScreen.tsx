@@ -17,7 +17,7 @@ import BottomNavBar from '../components/BottomNavBar';
 
 type Props = RootStackScreenProps<'Board'>;
 
-const CATEGORIES = ['전체', '공지', '자유', '질문', '정보', '후기', '동아리', '기타'];
+const CATEGORIES = ['전체', '갤러리', '게시판'];
 
 type Post = {
   id: string;
