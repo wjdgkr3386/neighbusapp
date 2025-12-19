@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
@@ -26,13 +27,52 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
 
-  const [selectedCategory, setSelectedCategory] = useState("sports");
-  const [city, setCity] = useState('');       // 시/도
-  const [district, setDistrict] = useState(''); // 시/군/구
-  const [detailAddress, setDetailAddress] = useState(''); // 상세주소
+  const [provinceList, setProvinceList] = useState<any[]>([]);
+  const [allRegionList, setAllRegionList] = useState<any[]>([]);
+  const [filteredRegions, setFilteredRegions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [city, setCity] = useState('');
+  const [district, setDistrict] = useState('');
+  const [detailAddress, setDetailAddress] = useState('');
+  const [provinceId, setProvinceId] = useState<number>(1);
+  const [cityId, setCityId] = useState<number>(1);
 
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+
+  const filterRegions = (provinceId: number, regions = allRegionList) => {
+    const filtered = regions.filter((r) => r.province === provinceId);
+    setFilteredRegions(filtered);
+    if (filtered.length > 0) {
+      setDistrict(filtered[0].city);
+      setCityId(filtered[0].id);
+    }
+  };
+
+  useEffect(() => {
+    fetch(`${BASE_URL}/api/mobile/account/getRegions`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === 1) {
+          setProvinceList(data.provinceList);
+          setAllRegionList(data.regionList);
+
+          if (data.provinceList && data.provinceList.length > 0) {
+            const firstProvince = data.provinceList[0];
+            setCity(firstProvince.province);
+            filterRegions(firstProvince.id, data.regionList);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Region Load Error:', error);
+        Alert.alert('오류', '지역 데이터를 불러올 수 없습니다.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const handleSignup = async () => {
     
@@ -48,20 +88,17 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
     }
 
     try {
-      // 2. 서버 전송 데이터 구성 (성별 변환: male -> M, female -> F)
       const signupData = {
         username: id,
         password: pwd,
         name: name,
         birth: birthDate,
-        sex: gender === 'male' ? 'M' : 'F', // 서버 형식에 맞게 변환
+        sex: gender === 'male' ? 'M' : 'F',
         phone: phone,
         email: email,
-
-        // 요청하신 대로 시/도, 시/군/구는 int형 기본값(1)로 유지하고 주소 텍스트만 보냄
-        province: 1,
-        city: 1,
-        address: `${city} ${district} ${detailAddress}`.trim(), // 입력받은 주소 합쳐서 전송
+        province: provinceId,
+        city: cityId,
+        address: `${detailAddress}`.trim(),
       };
 
       console.log('전송 데이터 확인:', signupData);
@@ -88,9 +125,15 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
             onPress: () => navigation.navigate('Login'),
           },
         ]);
+      } else if(result.status === -2){
+        Alert.alert('이미 있는 아이디입니다.');
+      } else if(result.status === -3){
+        Alert.alert('이미 있는 전화번호입니다.');
+      } else if(result.status === -4){
+        Alert.alert('이미 있는 이메일입니다.');
       } else {
         console.log("에러 응답:", result);
-        Alert.alert('회원가입 실패', '다시 시도해 주세요.\n(이미 존재하는 아이디일 수 있습니다)');
+        Alert.alert('회원가입 실패', '다시 시도해 주세요.');
       }
 
     } catch (error: any) {
@@ -98,7 +141,13 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert('통신 오류', '서버와 연결할 수 없습니다.\n' + error.message);
     }
   };
-
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#9B7E5C" />
+      </View>
+    );
+  }
   const handleLogin = () => {
     navigation.navigate('Login');
   };
@@ -200,41 +249,51 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
         {/* 주소 */}
         <View style={styles.row}>
           <View style={styles.halfInput}>
-            <Picker
-              selectedValue={selectedCategory} // 현재 선택된 값
-              onValueChange={(itemValue, itemIndex) =>
-                setSelectedCategory(itemValue) // 값이 바뀌면 state 업데이트
-              }>
-              <Picker.Item label="운동" value="sports" />
-              <Picker.Item label="독서" value="reading" />
-              <Picker.Item label="맛집 탐방" value="food" />
-            </Picker>
             <Text style={styles.label}>시/도</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="예: 서울"
-              placeholderTextColor="#B8B8B8"
-              value={city}
-              onChangeText={setCity}
-            />
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={city}
+                onValueChange={(itemValue) => {
+                  setCity(itemValue);
+                  const selected = provinceList.find((p) => p.province === itemValue);
+                  if (selected) {
+                    setProvinceId(selected.id);
+                    filterRegions(selected.id);
+                  }
+                }}
+              >
+                {provinceList.map((p) => (
+                  <Picker.Item key={p.id} label={p.province} value={p.province} />
+                ))}
+              </Picker>
+            </View>
           </View>
           <View style={styles.halfInput}>
             <Text style={styles.label}>시/군/구</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="예: 강남구"
-              placeholderTextColor="#B8B8B8"
-              value={district}
-              onChangeText={setDistrict}
-            />
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={district}
+                onValueChange={(itemValue) => {
+                  setDistrict(itemValue);
+                  const selected = filteredRegions.find((r) => r.city === itemValue);
+                  if (selected) {
+                    setCityId(selected.id);
+                  }
+                }}
+              >
+                {filteredRegions.map((r) => (
+                  <Picker.Item key={r.id} label={r.city} value={r.city} />
+                ))}
+              </Picker>
+            </View>
           </View>
         </View>
+
         <View style={styles.fullInput}>
           <Text style={styles.label}>상세주소</Text>
           <TextInput
             style={styles.input}
             placeholder="상세주소 입력"
-            placeholderTextColor="#B8B8B8"
             value={detailAddress}
             onChangeText={setDetailAddress}
           />
@@ -315,4 +374,11 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 10 },
   footerText: { fontSize: 13, color: '#8B7355' },
   loginLink: { fontSize: 13, color: '#9B7E5C', fontWeight: '600', textDecorationLine: 'underline' },
+  pickerWrapper: {
+    backgroundColor: '#FAFAFA',
+    borderWidth: 1.5,
+    borderColor: '#D8D0C8',
+    borderRadius: 10,
+    justifyContent: 'center',
+  },
 });
