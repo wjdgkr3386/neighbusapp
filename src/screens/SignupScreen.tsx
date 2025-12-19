@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import { useUser } from '../context/UserContext';
 import { BASE_URL } from '../config';
+import { Picker } from '@react-native-picker/picker';
 
 type Props = RootStackScreenProps<'Signup'>;
 
@@ -25,6 +26,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
   const [birthDate, setBirthDate] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
 
+  const [selectedCategory, setSelectedCategory] = useState("sports");
   const [city, setCity] = useState('');       // 시/도
   const [district, setDistrict] = useState(''); // 시/군/구
   const [detailAddress, setDetailAddress] = useState(''); // 상세주소
@@ -33,6 +35,7 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState('');
 
   const handleSignup = async () => {
+    
     // 1. 유효성 검사 (성별 체크 추가)
     if (!id || !name || !pwd || !pwdConfirm || !gender) {
       Alert.alert('입력 오류', '모든 필수 항목(성별 포함)을 입력해 주세요.');
@@ -197,6 +200,15 @@ const SignupScreen: React.FC<Props> = ({ navigation }) => {
         {/* 주소 */}
         <View style={styles.row}>
           <View style={styles.halfInput}>
+            <Picker
+              selectedValue={selectedCategory} // 현재 선택된 값
+              onValueChange={(itemValue, itemIndex) =>
+                setSelectedCategory(itemValue) // 값이 바뀌면 state 업데이트
+              }>
+              <Picker.Item label="운동" value="sports" />
+              <Picker.Item label="독서" value="reading" />
+              <Picker.Item label="맛집 탐방" value="food" />
+            </Picker>
             <Text style={styles.label}>시/도</Text>
             <TextInput
               style={styles.input}
