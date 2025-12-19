@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 type BottomNavBarProps = {
-  currentScreen: 'Home' | 'Board' | 'Chat' | 'MyPage';
+  currentScreen: 'Home' | 'Gallery' | 'Freeboard' | 'Chat' | 'MyPage';
 };
 
 const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentScreen }) => {
@@ -13,7 +13,8 @@ const BottomNavBar: React.FC<BottomNavBarProps> = ({ currentScreen }) => {
 
   const navItems = [
     { key: 'Home', route: 'Home', icon: '👥', text: '동아리' },
-    { key: 'Board', route: 'Board', icon: '📋', text: '게시글' },
+    { key: 'Gallery', route: 'Gallery', icon: '🖼️', text: '갤러리' },
+    { key: 'Freeboard', route: 'FreeBoard', icon: '📋', text: '게시판' },
     { key: 'Chat', route: 'Chat', icon: '💬', text: '채팅' },
     { key: 'MyPage', route: 'MyPage', icon: '👤', text: '마이' },
   ];
