@@ -15,14 +15,17 @@ import LoginScreen from './src/screens/LoginScreen';
 import MyPage from './src/screens/MyPage';
 import ChatScreen from './src/screens/ChatScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import BoardScreen from './src/screens/BoardScreen';
-import BoardWriteScreen from './src/screens/BoardWriteScreen';
 import ClubDetailScreen from './src/screens/ClubDetailScreen';
 import MeetingDetailScreen from './src/screens/MeetingDetailScreen';
 import CreateMeetingScreen from './src/screens/CreateMeetingScreen';
-import BoardDetailScreen from './src/screens/BoardDetailScreen';
 import NoticeListScreen from './src/screens/NoticeListScreen';
 import NoticeDetailScreen from './src/screens/NoticeDetailScreen';
+import FreeBoardScreen from './src/screens/FreeBoardScreen';
+import GalleryScreen from './src/screens/GalleryScreen';
+import FreeBoardDetailScreen from './src/screens/FreeBoardDetailScreen';
+import FreeBoardWriteScreen from './src/screens/FreeBoardWriteScreen';
+import GalleryDetailScreen from './src/screens/GalleryDetailScreen';
+import GalleryWriteScreen from './src/screens/GalleryWriteScreen';
 
 // 네비게이션 스택에 포함될 화면들의 타입을 정의합니다.
 export type RootStackParamList = {
@@ -32,12 +35,15 @@ export type RootStackParamList = {
   MyPage: undefined;
   Chat: undefined;
   Home: undefined;
-  Board: undefined;
-  BoardWrite: undefined;
+  FreeBoard: undefined;
+  Gallery: undefined;
+  FreeBoardWrite: undefined;
+  GalleryWrite: undefined;
   ClubDetail: { clubId: string };
   MeetingDetail: { meetingId: string; date: string };
   CreateMeeting: undefined;
-  BoardDetail: { postId: string };
+  FreeBoardDetail: { postId: string };
+  GalleryDetail: { postId: string };
   NoticeList: undefined;
   NoticeDetail: { noticeId: string };
 };
@@ -65,13 +71,23 @@ function App(): React.JSX.Element {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="Board"
-            component={BoardScreen}
+            name="FreeBoard"
+            component={FreeBoardScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="BoardWrite"
-            component={BoardWriteScreen}
+            name="Gallery"
+            component={GalleryScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="FreeBoardWrite"
+            component={FreeBoardWriteScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="GalleryWrite"
+            component={GalleryWriteScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -110,8 +126,13 @@ function App(): React.JSX.Element {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="BoardDetail"
-            component={BoardDetailScreen}
+            name="FreeBoardDetail"
+            component={FreeBoardDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="GalleryDetail"
+            component={GalleryDetailScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen
