@@ -29,8 +29,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert('입력 오류', '아이디와 비밀번호를 모두 입력해 주세요.');
       return;
     }
-    Alert.alert("여기 옴");
-    Alert.alert(`${BASE_URL}`);
     fetch(`${BASE_URL}/api/mobile/account/mobileLogin`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
