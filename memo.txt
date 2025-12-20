@@ -5,13 +5,10 @@ npm install react-native-calendars
 npm install
 npm install @react-native-picker/picker
 npm install react-native-vector-icons
+npm install @react-native-async-storage/async-storage
 
 npx react-native start
 npx react-native run-android
-npm install @react-native-async-storage/async-storage
-
-
-
 
 
 # 안드로이드 에뮬 강제 실행
