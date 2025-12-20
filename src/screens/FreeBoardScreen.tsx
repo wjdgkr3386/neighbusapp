@@ -123,18 +123,6 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.subtitle}>우리 동네 이야기를 나눠요</Text>
         </View>
 
-        {/* 글쓰기 버튼 */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={handleWritePost}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.createIcon}>✏️</Text>
-            <Text style={styles.createText}>글쓰기</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* 검색 섹션 */}
         <View style={styles.searchSection}>
           <Text style={styles.searchLabel}>검색어</Text>
@@ -220,6 +208,15 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
         onClose={() => setShowSideMenu(false)}
         navigation={navigation}
       />
+
+      {/* 글쓰기 플로팅 버튼 */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleWritePost}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -438,5 +435,32 @@ const styles = StyleSheet.create({
   statText: {
     fontSize: 12,
     color: theme.colors.textLight,
+  },
+  fab: {
+    position: 'absolute',
+    right: 25,
+    bottom: 100, // 하단 네비게이션 바 위에 위치하도록 조정
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  fabIcon: {
+    fontSize: 30,
+    color: theme.colors.white,
+    lineHeight: 30, // 아이콘 수직 정렬
   },
 });
