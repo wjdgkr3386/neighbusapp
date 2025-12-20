@@ -46,16 +46,19 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.wrapper} {...panResponder.panHandlers}>
-        {/* 헤더 */}
-        <View style={styles.header}>
+      <View style={styles.header}>
         <Text style={styles.headerTitle}>마이페이지</Text>
         <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
           <Text style={styles.settingsIcon}>⚙️</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.container} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+        {...panResponder.panHandlers}
+      >
         {/* 프로필 섹션 */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
@@ -154,7 +157,6 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
         onClose={() => setShowSideMenu(false)}
         navigation={navigation}
       />
-      </View>
     </SafeAreaView>
   );
 };
@@ -166,8 +168,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5EDE4',
   },
-  wrapper: {
-    flex: 1,
+  container: {
+    // flex: 1 is removed
+  },
+  contentContainer: {
+    paddingBottom: 100, // Added padding for BottomNavBar
   },
   header: {
     flexDirection: 'row',
@@ -189,9 +194,6 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     fontSize: 24,
-  },
-  container: {
-    flex: 1,
   },
   profileSection: {
     backgroundColor: '#FFFFFF',

@@ -112,8 +112,11 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.wrapper} {...panResponder.panHandlers}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.contentContainer}
+        {...panResponder.panHandlers}
+      >
         {/* 헤더 */}
         <View style={styles.header}>
           <Text style={styles.title}>자유게시판</Text>
@@ -209,7 +212,7 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
       </ScrollView>
 
       {/* 하단 네비게이션 */}
-      <BottomNavBar currentScreen="FreeBoard" />
+      <BottomNavBar currentScreen="Freeboard" />
 
       {/* 사이드 메뉴 */}
       <SideMenu
@@ -217,7 +220,6 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
         onClose={() => setShowSideMenu(false)}
         navigation={navigation}
       />
-      </View>
     </SafeAreaView>
   );
 };
@@ -229,14 +231,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.bodyBg,
   },
-  wrapper: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
+  scrollView: {
+    // 이 스타일은 이제 특별한 것이 필요 없습니다.
   },
   contentContainer: {
-    paddingBottom: 20,
+    paddingBottom: 100, // 하단 네비게이션 바 높이만큼 여백 추가
   },
   header: {
     alignItems: 'center',
