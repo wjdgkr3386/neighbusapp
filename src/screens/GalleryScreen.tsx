@@ -7,10 +7,13 @@ import {
   StyleSheet,
   TextInput,
   PanResponder,
-  Image,
+  ImageBackground,
   FlatList,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// Note: The original code assumed expo-linear-gradient, which is not a listed dependency.
+// I will use a simple View with an RGBA background as a fallback for the gradient effect.
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
@@ -20,160 +23,98 @@ type Props = RootStackScreenProps<'Gallery'>;
 
 type Post = {
   id: string;
-  category: string;
   title: string;
   author: string;
-  date: string;
   imageUrl: string;
+  height: number; // For Masonry layout
 };
 
 const POSTS: Post[] = [
-  {
-    id: '1',
-    category: '갤러리',
-    title: '우리 동네 풍경',
-    author: '사진작가',
-    date: '1일 전',
-    imageUrl: 'https://via.placeholder.com/300/D2B48C/FFFFFF?text=Neighbus',
-  },
-  {
-    id: '2',
-    category: '갤러리',
-    title: '귀여운 강아지',
-    author: '멍멍이주인',
-    date: '2일 전',
-    imageUrl: 'https://via.placeholder.com/300/8B4513/FFFFFF?text=Neighbus',
-  },
-  {
-    id: '3',
-    category: '갤러리',
-    title: '오늘의 점심',
-    author: '맛잘알',
-    date: '3일 전',
-    imageUrl: 'https://via.placeholder.com/300/9B7E5C/FFFFFF?text=Neighbus',
-  },
-    {
-    id: '4',
-    category: '갤러리',
-    title: '노을 사진',
-    author: '하늘바라기',
-    date: '4일 전',
-    imageUrl: 'https://via.placeholder.com/300/5C4A3A/FFFFFF?text=Neighbus',
-  },
+  { id: '1', title: '우리 동네 풍경', author: '사진작가', imageUrl: 'https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800', height: 250 },
+  { id: '2', title: '귀여운 강아지', author: '멍멍이주인', imageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800', height: 300 },
+  { id: '3', title: '오늘의 점심', author: '맛잘알', imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800', height: 300 },
+  { id: '4', title: '노을 사진', author: '하늘바라기', imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800', height: 250 },
+  { id: '5', title: '골목길 고양이', author: '집사', imageUrl: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?q=80&w=800', height: 250 },
+  { id: '6', title: '새로 생긴 카페', author: '커피러버', imageUrl: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?q=80&w=800', height: 300 },
 ];
 
 const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortOrder, setSortOrder] = useState('최신순');
   const [showSideMenu, setShowSideMenu] = useState(false);
 
-  // 스와이프 제스처 감지
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dx) > 20;
-      },
+      onMoveShouldSetPanResponder: (evt, gestureState) => Math.abs(gestureState.dx) > 20,
       onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.dx < -50) {
-          setShowSideMenu(true);
-        }
+        if (gestureState.dx < -50) setShowSideMenu(true);
       },
     })
   ).current;
 
-  const handleSearch = () => {
-    console.log('검색:', searchQuery);
-    // 검색 로직 구현
+  const handleWritePost = () => navigation.navigate('GalleryWrite');
+  const handlePostClick = (post: Post) => navigation.navigate('GalleryDetail', { postId: post.id });
+  const handleSortPress = () => {
+    // In a real app, this would open a dropdown/modal to change the sort order
+    console.log('Sort button pressed. Current order:', sortOrder);
   };
-
-  const handleWritePost = () => {
-    navigation.navigate('GalleryWrite');
-  };
-
-  const handlePostClick = (post: Post) => {
-    navigation.navigate('GalleryDetail', { postId: post.id });
-  };
-
-  const filteredPosts = POSTS.filter(post => post.category === '갤러리');
 
   const renderGalleryItem = ({ item }: { item: Post }) => (
     <TouchableOpacity
-      style={styles.galleryItem}
+      style={[styles.galleryItem, { height: item.height }]}
       onPress={() => handlePostClick(item)}
-      activeOpacity={0.7}
+      activeOpacity={0.9}
     >
-      <Image source={{ uri: item.imageUrl }} style={styles.galleryImage} />
-      <View style={styles.galleryItemFooter}>
-        <Text style={styles.galleryItemTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.galleryItemAuthor}>{item.author}</Text>
-      </View>
+      <ImageBackground source={{ uri: item.imageUrl }} style={styles.imageBackground}>
+        <View style={styles.textOverlay}>
+          <Text style={styles.galleryItemTitle} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.galleryItemAuthor}>{item.author}</Text>
+        </View>
+      </ImageBackground>
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.wrapper} {...panResponder.panHandlers}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <Text style={styles.title}>갤러리</Text>
-          <Text style={styles.subtitle}>우리 동네 사진을 공유해요</Text>
-        </View>
-
-        {/* 글쓰기 버튼 */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={handleWritePost}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.createIcon}>✏️</Text>
-            <Text style={styles.createText}>글쓰기</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 검색 섹션 */}
-        <View style={styles.searchSection}>
-          <Text style={styles.searchLabel}>검색어</Text>
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputWrapper}>
-              <Text style={styles.searchIcon}>🔍</Text>
-              <TextInput
-                style={styles.searchInput}
-                placeholder="제목, 작성자 검색..."
-                placeholderTextColor={theme.colors.textLight}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={handleSearch}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.searchButtonIcon}>🔍</Text>
-              <Text style={styles.searchButtonText}>검색</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <FlatList
-          data={filteredPosts}
-          renderItem={renderGalleryItem}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.galleryList}
-        />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>갤러리</Text>
       </View>
 
-      {/* 하단 네비게이션 */}
+      {/* Controls Section */}
+      <View style={styles.controlsContainer}>
+        <View style={styles.searchInputWrapper}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="제목, 작성자 검색..."
+            placeholderTextColor={theme.colors.textLight}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity style={styles.sortButton} onPress={handleSortPress}>
+          <Text style={styles.sortButtonText}>{sortOrder}</Text>
+          <Text style={styles.sortButtonIcon}>▼</Text>
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={POSTS}
+        renderItem={renderGalleryItem}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.galleryList}
+        showsVerticalScrollIndicator={false}
+      />
+
       <BottomNavBar currentScreen="Gallery" />
 
-      {/* 사이드 메뉴 */}
-      <SideMenu
-        visible={showSideMenu}
-        onClose={() => setShowSideMenu(false)}
-        navigation={navigation}
-      />
+      <TouchableOpacity style={styles.fab} onPress={handleWritePost} activeOpacity={0.8}>
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
+
+      <SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
     </SafeAreaView>
   );
 };
@@ -183,144 +124,120 @@ export default GalleryScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.bodyBg,
-  },
-  wrapper: {
-    flex: 1,
+    backgroundColor: theme.colors.white,
   },
   header: {
-    alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8, // Reduced padding
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderColor,
   },
-  title: {
-    fontSize: 40,
-    fontWeight: '700',
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
     color: theme.colors.textPrimary,
-    marginBottom: 12,
   },
-  subtitle: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    textAlign: 'center',
-  },
-  actionRow: {
+  controlsContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 24,
-    marginBottom: 24,
-    gap: 12,
-  },
-  createButton: {
-    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  createIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
-  createText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.white,
-  },
-  searchSection: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  searchLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-    marginBottom: 10,
-  },
-  searchContainer: {
-    flexDirection: 'row',
     gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderColor,
   },
   searchInputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.cardBg,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderColor,
+    backgroundColor: theme.colors.bodyBg,
     borderRadius: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
   },
   searchIcon: {
-    fontSize: 18,
-    marginRight: 8,
+    fontSize: 16,
+    color: theme.colors.textLight,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     color: theme.colors.textPrimary,
-    paddingVertical: 14,
   },
-  searchButton: {
+  sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.bodyBg,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: 10,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  searchButtonIcon: {
-    fontSize: 16,
-    marginRight: 6,
-  },
-  searchButtonText: {
+  sortButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.colors.white,
+    color: theme.colors.textPrimary,
+  },
+  sortButtonIcon: {
+    fontSize: 10,
+    marginLeft: 6,
+    color: theme.colors.textSecondary,
   },
   galleryList: {
-    paddingHorizontal: 12,
-    paddingBottom: 20,
+    padding: 8,
+    paddingBottom: 100,
   },
   galleryItem: {
     flex: 1,
-    margin: 6,
-    backgroundColor: theme.colors.cardBg,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    margin: 8,
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: theme.colors.borderColor,
+    backgroundColor: theme.colors.bodyBg,
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8 },
+      android: { elevation: 5 },
+    }),
   },
-  galleryImage: {
-    width: '100%',
-    height: 150,
+  imageBackground: {
+    flex: 1,
+    justifyContent: 'flex-end',
   },
-  galleryItemFooter: {
-    padding: 8,
+  textOverlay: {
+    padding: 12,
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   galleryItemTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
+    fontWeight: '700',
+    color: theme.colors.white,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
   galleryItemAuthor: {
     fontSize: 12,
-    color: theme.colors.textLight,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginTop: 2,
+  },
+  fab: {
+    position: 'absolute',
+    right: 25,
+    bottom: 100,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 },
+      android: { elevation: 8 },
+    }),
+  },
+  fabIcon: {
+    fontSize: 30,
+    color: theme.colors.white,
+    lineHeight: 30,
   },
 });
