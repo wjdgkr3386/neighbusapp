@@ -31,7 +31,7 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { clubId } = route.params;
 
   const [selectedDate, setSelectedDate] = useState('');
-  const [meetings, setMeetings] = useState({
+  const [meetings, setMeetings] = useState<Record<string, { id: string; summary: string }>>({
     '2025-12-20': { id: 'm1', summary: '한강 플로깅' },
     '2025-12-28': { id: 'm2', summary: '연말 총회' },
   });
@@ -39,7 +39,7 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const markedDates = Object.keys(meetings).reduce((acc, date) => {
     acc[date] = { marked: true, dotColor: '#9B7E5C' };
     return acc;
-  }, {});
+  }, {} as Record<string, any>);
 
   if (selectedDate && !markedDates[selectedDate]) {
     markedDates[selectedDate] = { selected: true, selectedColor: '#D8D0C8' };
