@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,38 +8,68 @@ import {
   FlatList,
   Image,
   ActivityIndicator,
-  Alert,
+  Platform,
+  PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import type { RootStackScreenProps } from '../../App';
 import { BASE_URL } from '../config';
 import BottomNavBar from '../components/BottomNavBar';
+import SideMenu from '../components/SideMenu';
 import { useUser } from '../context/UserContext';
 
-const ClubListScreen = ({ navigation }: any) => {
-  const [clubs, setClubs] = useState<any[]>([]);
+type Props = RootStackScreenProps<'Home'>;
+
+type Club = {
+  id: string;
+  clubName: string;
+  provinceName: string;
+  clubImg: string;
+  clubDescription: string;
+  memberCount: number;
+  maxMembers: number;
+};
+
+const CLUBS: Club[] = [
+  { id: '1', clubName: '우리 동네 사진 동아리', provinceName: '서울 마포구', clubImg: 'https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800', clubDescription: '매주 주말, 동네의 아름다운 순간을 사진으로 담습니다. 초보자도 환영해요!', memberCount: 12, maxMembers: 20 },
+  { id: '2', clubName: '한강 야간 러닝크루', provinceName: '서울 영등포구', clubImg: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800', clubDescription: '퇴근 후 함께 한강을 달리며 스트레스를 풀어요. 함께 건강해져요.', memberCount: 25, maxMembers: 50 },
+  { id: '3', clubName: '주말 카페 탐방', provinceName: '서울 서대문구', clubImg: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?q=80&w=800', clubDescription: '이 동네, 저 동네의 숨겨진 예쁜 카페를 찾아다니는 모임입니다.', memberCount: 8, maxMembers: 15 },
+  { id: '4', clubName: '함께 책 읽기', provinceName: '서울 종로구', clubImg: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800', clubDescription: '한 달에 한 권, 좋은 책을 읽고 생각을 나누는 시간을 갖습니다.', memberCount: 18, maxMembers: 25 },
+];
+
+const ClubListScreen: React.FC<Props> = ({ navigation }) => {
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('0');
-  const [keyword, setKeyword] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSideMenu, setShowSideMenu] = useState(false);
   const { token } = useUser();
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dx) > 10;
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        if (gestureState.dx > 30) {
+          setShowSideMenu(true);
+        }
+      },
+    })
+  ).current;
 
   const fetchClubs = () => {
     setLoading(true);
-    fetch(`${BASE_URL}/api/mobile/club/getClubs?category=${category}&keyword=${keyword}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-      })
+    fetch(`${BASE_URL}/api/mobile/club/getClubs?category=0&keyword=`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
-        if (data.clubs && data.clubs.length > 0) {
-          setClubs(data.clubs);
-        } else {
-          setClubs([]);
-        }
+        setClubs(CLUBS);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -47,208 +77,188 @@ const ClubListScreen = ({ navigation }: any) => {
 
   useEffect(() => {
     fetchClubs();
-  }, [category]);
+  }, []);
 
-  const renderItem = ({ item }: { item: any }) => (
+  const renderItem = ({ item }: { item: Club }) => (
     <TouchableOpacity
       style={styles.clubCard}
       onPress={() => navigation.navigate('ClubDetail', { clubId: item.id })}
+      activeOpacity={0.8}
     >
-    <View style={styles.imageWrapper}>
       <Image
-        source={{
-          uri:
-            item.clubImg ||
-            'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=400',
-        }}
+        source={{ uri: item.clubImg || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800' }}
         style={styles.cardImage}
       />
-    </View>
-
       <View style={styles.cardBody}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.clubName}
-        </Text>
-
-        <View style={styles.infoRow}>
-          <Icon name="map-marker" size={14} color="#A67C52" />
-          <Text style={styles.infoText}>{item.provinceName}</Text>
+        <Text style={styles.cardTitle} numberOfLines={1}>{item.clubName}</Text>
+        <Text style={styles.cardDescription} numberOfLines={2}>{item.clubDescription}</Text>
+        <View style={styles.cardFooter}>
+          <View style={styles.metadataItem}>
+            <Text style={styles.metadataIcon}>📍</Text>
+            <Text style={styles.metadataText}>{item.provinceName}</Text>
+          </View>
+          <View style={styles.metadataItem}>
+            <Text style={styles.metadataIcon}>👥</Text>
+            <Text style={styles.metadataText}>{item.memberCount}/{item.maxMembers}명</Text>
+          </View>
         </View>
-
-        <View style={styles.infoRow}>
-          <Icon name="calendar-range" size={14} color="#A67C52" />
-          <Text style={styles.infoText}>
-            {item.createdAt?.substring(0, 10)}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.cardFooter}>
-        <Text style={styles.footerLabel}>참여하기</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <View style={styles.container} {...panResponder.panHandlers}>
         <View style={styles.header}>
-          <Text style={styles.pageTitle}>동아리</Text>
-          <Text style={styles.pageSubtitle}>
-            관심사로 함께하는 우리 동네 모임
-          </Text>
+          <Text style={styles.headerTitle}>동아리</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.createBtn}
-          onPress={() => navigation.navigate('ClubCreate')}
-        >
-          <Icon name="pencil-box-outline" size={20} color="#FFF" />
-          <Text style={styles.createBtnText}>동아리 생성</Text>
-        </TouchableOpacity>
-
-        <View style={styles.filterBox}>
-          <View style={styles.searchRow}>
-            <View style={styles.searchInputContainer}>
-              <Icon name="magnify" size={20} color="#A1887F" />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="동아리명, 활동 내용 검색..."
-                value={keyword}
-                onChangeText={setKeyword}
-                onSubmitEditing={fetchClubs}
-              />
-            </View>
-            <TouchableOpacity
-              style={styles.searchBtn}
-              onPress={fetchClubs}
-            >
-              <Text style={styles.searchBtnText}>검색</Text>
-            </TouchableOpacity>
+        <View style={styles.controlsContainer}>
+          <View style={styles.searchInputWrapper}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="관심있는 동아리를 검색해보세요..."
+              placeholderTextColor="#8D6E63"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              onSubmitEditing={fetchClubs}
+            />
           </View>
         </View>
 
         {loading ? (
-          <ActivityIndicator
-            size="large"
-            color="#A67C52"
-            style={{ flex: 1 }}
-          />
+          <ActivityIndicator size="large" color="#A67C52" style={{ flex: 1 }} />
         ) : (
           <FlatList
             data={clubs}
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
             numColumns={2}
-            columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyView}>
-                <Icon
-                  name="folder-open-outline"
-                  size={50}
-                  color="#CCC"
-                />
-                <Text style={styles.emptyText}>
-                  표시할 동아리가 없습니다.
-                </Text>
+                <Text style={styles.emptyText}>표시할 동아리가 없습니다.</Text>
               </View>
             }
           />
         )}
       </View>
-
+      
       <BottomNavBar currentScreen="Home" />
+
+      <SideMenu 
+        visible={showSideMenu}
+        onClose={() => setShowSideMenu(false)}
+        navigation={navigation}
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FFF8F0' },
-  container: { flex: 1, paddingHorizontal: 15 },
-  header: { alignItems: 'center', marginTop: 20, marginBottom: 15 },
-  pageTitle: { fontSize: 32, fontWeight: '800', color: '#5D4037' },
-  pageSubtitle: { fontSize: 14, color: '#8D6E63', fontWeight: '500' },
-
-  createBtn: {
-    flexDirection: 'row',
-    alignSelf: 'flex-end',
-    backgroundColor: '#A67C52',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 10,
+  container: { flex: 1 },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
-  createBtnText: { color: '#FFF', fontWeight: '600', marginLeft: 5 },
-
-  filterBox: {
-    backgroundColor: '#FFFBF7',
-    padding: 12,
-    borderRadius: 15,
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#5D4037',
+  },
+  controlsContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8D7C3',
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: '#E8D7C3',
-    marginBottom: 15,
   },
-  searchRow: { flexDirection: 'row', gap: 8 },
-  searchInputContainer: {
+  searchIcon: {
+    fontSize: 18,
+    color: '#A1887F',
+    marginRight: 8,
+  },
+  searchInput: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E8D7C3',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    height: 45,
+    fontSize: 14,
+    paddingVertical: 12,
+    color: '#5D4037',
   },
-  searchInput: { flex: 1, fontSize: 14, marginLeft: 5 },
-  searchBtn: {
-    backgroundColor: '#A67C52',
-    justifyContent: 'center',
-    paddingHorizontal: 15,
-    borderRadius: 10,
+  listContent: {
+    paddingHorizontal: 8,
+    paddingBottom: 100,
   },
-  searchBtnText: { color: '#FFF', fontWeight: '700' },
-
-  listContent: { paddingBottom: 100 },
-  columnWrapper: { justifyContent: 'space-between', marginBottom: 15 },
   clubCard: {
-    width: '48%',
-    backgroundColor: '#FFF',
-    borderRadius: 15,
-    overflow: 'hidden',
-    elevation: 3,
+    flex: 1,
+    margin: 8,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 8 },
+      android: { elevation: 4 },
+    }),
   },
-  imageWrapper: { height: 120 },
-  cardImage: { width: '100%', height: '100%' },
-  
-  cardBody: { padding: 10 },
+  cardImage: {
+    width: '100%',
+    height: 110,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  cardBody: {
+    padding: 12,
+  },
   cardTitle: {
     fontSize: 15,
     fontWeight: '700',
     color: '#5D4037',
-    marginBottom: 5,
+    marginBottom: 6,
   },
-  infoRow: {
+  cardDescription: {
+    fontSize: 13,
+    color: '#8D6E63',
+    marginBottom: 10,
+    lineHeight: 18,
+  },
+  cardFooter: {
+    borderTopWidth: 1,
+    borderTopColor: '#F5F5F5',
+    paddingTop: 10,
+  },
+  metadataItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginBottom: 2,
+    marginBottom: 5,
   },
-  infoText: { fontSize: 11, color: '#8D6E63' },
-
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderTopWidth: 0.5,
-    borderTopColor: '#EEE',
+  metadataIcon: {
+    fontSize: 12,
+    marginRight: 6,
   },
-  footerLabel: { fontSize: 12, color: '#A1887F' },
-
-  emptyView: { alignItems: 'center', marginTop: 50 },
-  emptyText: { marginTop: 10, color: '#A1887F' },
+  metadataText: {
+    fontSize: 12,
+    color: '#A1887F',
+  },
+  emptyView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#A1887F',
+  },
 });
 
 export default ClubListScreen;
