@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Platform,
   PanResponder,
+  Button,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
@@ -30,16 +31,10 @@ type Club = {
   maxMembers: number;
 };
 
-const CLUBS: Club[] = [
-  { id: '1', clubName: '우리 동네 사진 동아리', provinceName: '서울 마포구', clubImg: 'https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800', clubDescription: '매주 주말, 동네의 아름다운 순간을 사진으로 담습니다. 초보자도 환영해요!', memberCount: 12, maxMembers: 20 },
-  { id: '2', clubName: '한강 야간 러닝크루', provinceName: '서울 영등포구', clubImg: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=800', clubDescription: '퇴근 후 함께 한강을 달리며 스트레스를 풀어요. 함께 건강해져요.', memberCount: 25, maxMembers: 50 },
-  { id: '3', clubName: '주말 카페 탐방', provinceName: '서울 서대문구', clubImg: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?q=80&w=800', clubDescription: '이 동네, 저 동네의 숨겨진 예쁜 카페를 찾아다니는 모임입니다.', memberCount: 8, maxMembers: 15 },
-  { id: '4', clubName: '함께 책 읽기', provinceName: '서울 종로구', clubImg: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=800', clubDescription: '한 달에 한 권, 좋은 책을 읽고 생각을 나누는 시간을 갖습니다.', memberCount: 18, maxMembers: 25 },
-];
-
-const ClubListScreen: React.FC<Props> = ({ navigation }) => {
+const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSideMenu, setShowSideMenu] = useState(false);
   const { token } = useUser();
@@ -58,26 +53,58 @@ const ClubListScreen: React.FC<Props> = ({ navigation }) => {
     })
   ).current;
 
-  const fetchClubs = () => {
+  const fetchClubs = useCallback(() => {
     setLoading(true);
-    fetch(`${BASE_URL}/api/mobile/club/getClubs?category=0&keyword=`, {
+    setError(null);
+
+    if (!token) {
+      setError('로그인이 필요한 서비스입니다.');
+      setLoading(false);
+      return;
+    }
+
+    // Use searchQuery in the API call
+    const url = `${BASE_URL}/api/mobile/club/getClubs?category=0&keyword=${searchQuery}`;
+
+    fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
     })
-      .then((res) => res.json())
-      .then((data) => {
-        setClubs(CLUBS);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  };
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error('동아리 목록을 불러오는데 실패했습니다.');
+      }
+      return res.json();
+    })
+    .then((data) => {
+      if (data.clubs) {
+        const mappedClubs: Club[] = data.clubs.map((club: any) => ({
+          id: club.Id?.toString() || club.clubId.toString(), // Use Id or clubId
+          clubName: club.clubName || '이름 없음',
+          provinceName: club.provinceName || '지역 정보 없음',
+          clubImg: club.clubImg || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800',
+          clubDescription: club.clubInfo || '소개 없음',
+          memberCount: club.memberCount || 0, // Assuming field name, default to 0
+          maxMembers: club.maxMembers || 0, // Assuming field name, default to 0
+        }));
+        setClubs(mappedClubs);
+      } else {
+        setClubs([]);
+      }
+    })
+    .catch(err => {
+      setError(err.message || '알 수 없는 오류가 발생했습니다.');
+      console.error(err);
+    })
+    .finally(() => setLoading(false));
+  }, [token, searchQuery]);
 
   useEffect(() => {
     fetchClubs();
-  }, []);
+  }, [fetchClubs]);
 
   const renderItem = ({ item }: { item: Club }) => (
     <TouchableOpacity
@@ -106,6 +133,35 @@ const ClubListScreen: React.FC<Props> = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  const renderContent = () => {
+    if (loading) {
+      return <ActivityIndicator size="large" color="#A67C52" style={styles.messageContainer} />;
+    }
+    if (error) {
+      return (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>{error}</Text>
+          {token && <Button title="다시 시도" onPress={fetchClubs} color="#A67C52" />}
+        </View>
+      );
+    }
+    return (
+      <FlatList
+        data={clubs}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>표시할 동아리가 없습니다.</Text>
+          </View>
+        }
+      />
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container} {...panResponder.panHandlers}>
@@ -123,27 +179,12 @@ const ClubListScreen: React.FC<Props> = ({ navigation }) => {
               value={searchQuery}
               onChangeText={setSearchQuery}
               onSubmitEditing={fetchClubs}
+              returnKeyType="search"
             />
           </View>
         </View>
 
-        {loading ? (
-          <ActivityIndicator size="large" color="#A67C52" style={{ flex: 1 }} />
-        ) : (
-          <FlatList
-            data={clubs}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View style={styles.emptyView}>
-                <Text style={styles.emptyText}>표시할 동아리가 없습니다.</Text>
-              </View>
-            }
-          />
-        )}
+        {renderContent()}
       </View>
       
       <BottomNavBar currentScreen="Home" />
@@ -249,16 +290,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#A1887F',
   },
-  emptyView: {
+  messageContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 50,
   },
-  emptyText: {
+  messageText: {
     fontSize: 16,
     color: '#A1887F',
   },
 });
 
-export default ClubListScreen;
+export default HomeScreen;

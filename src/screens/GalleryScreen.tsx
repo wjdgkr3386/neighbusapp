@@ -80,6 +80,7 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       })
       .finally(() => {
         setLoading(false);
+        
       });
   }, [token]);
 
