@@ -1,5 +1,5 @@
 // src/screens/MyPage.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
   PanResponder,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
@@ -17,19 +18,49 @@ import BottomNavBar from '../components/BottomNavBar';
 
 type Props = RootStackScreenProps<'MyPage'>;
 
+// Dummy data for "My Meetings"
+const MY_MEETINGS = [
+  { id: 'm1', title: '정기 독서 토론', clubName: '함께 책 읽기', date: '2025.12.25' },
+  { id: 'm2', title: '야간 러닝 (5km)', clubName: '한강 야간 러닝크루', date: '2025.12.27' },
+  { id: 'm3', title: '크리스마스 케이크 만들기', clubName: '주말 베이킹', date: '2025.12.24' },
+];
+
+
 const MyPage: React.FC<Props> = ({ navigation }) => {
   const { user } = useUser();
   const [showSideMenu, setShowSideMenu] = useState(false);
+  const hintAnimation = useRef(new Animated.Value(-50)).current;
+
+  // Side menu hint animation
+  useEffect(() => {
+    const animation = Animated.sequence([
+      Animated.timing(hintAnimation, {
+        toValue: 0,
+        duration: 500,
+        delay: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(hintAnimation, {
+        toValue: -50,
+        duration: 500,
+        delay: 1500,
+        useNativeDriver: true,
+      }),
+    ]);
+    animation.start();
+  }, [hintAnimation]);
 
   // 스와이프 제스처 감지
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dx) > 20;
+        // Start detecting swipe after 10 pixels
+        return Math.abs(gestureState.dx) > 10;
       },
       onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.dx < -50) {
+        // Open menu if swiped more than 30 pixels to the right
+        if (gestureState.dx > 30) {
           setShowSideMenu(true);
         }
       },
@@ -40,12 +71,12 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
     console.log('설정 클릭');
   };
 
-  const handleEditProfile = () => {
-    console.log('프로필 수정');
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
+      <Animated.View style={[styles.sideMenuHint, { transform: [{ translateX: hintAnimation }] }]}>
+        <Text style={styles.hintArrow}>›</Text>
+      </Animated.View>
+
       <View style={styles.header}>
         <Text style={styles.headerTitle}>마이페이지</Text>
         <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
@@ -72,14 +103,6 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.locationIcon}>📍</Text>
             <Text style={styles.location}>서울시 마포구</Text>
           </View>
-
-          <TouchableOpacity
-            style={styles.editProfileButton}
-            onPress={handleEditProfile}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.editProfileText}>프로필 수정</Text>
-          </TouchableOpacity>
         </View>
 
         {/* 통계 섹션 */}
@@ -134,18 +157,23 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
           </ScrollView>
         </View>
 
-        {/* 다가오는 모임 섹션 */}
+        {/* 내 모임 섹션 */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>📅</Text>
-            <Text style={styles.sectionTitle}>다가오는 모임</Text>
+            <Text style={styles.sectionIcon}>✅</Text>
+            <Text style={styles.sectionTitle}>내 모임</Text>
           </View>
-
-          <View style={styles.meetingCard}>
-            <Text style={styles.meetingNumber}>1.</Text>
-            <Text style={styles.meetingTitle}>[러닝크루] 한강 10km 달리기 / 12.10 (일) 19:00</Text>
-          </View>
+          {MY_MEETINGS.map(meeting => (
+            <TouchableOpacity key={meeting.id} style={styles.myMeetingCard} activeOpacity={0.7}>
+              <View style={styles.myMeetingInfo}>
+                <Text style={styles.myMeetingClubName}>{meeting.clubName}</Text>
+                <Text style={styles.myMeetingTitle}>{meeting.title}</Text>
+              </View>
+              <Text style={styles.myMeetingDate}>{meeting.date}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
+
       </ScrollView>
 
       {/* 하단 네비게이션 */}
@@ -167,6 +195,24 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F5EDE4',
+  },
+  sideMenuHint: {
+    position: 'absolute',
+    left: 0,
+    top: '45%',
+    width: 50,
+    height: 60,
+    backgroundColor: 'rgba(155, 126, 92, 0.7)',
+    borderTopRightRadius: 30,
+    borderBottomRightRadius: 30,
+    justifyContent: 'center',
+    paddingLeft: 5,
+    zIndex: 10,
+  },
+  hintArrow: {
+    fontSize: 30,
+    color: 'white',
+    fontWeight: '200',
   },
   container: {
     // flex: 1 is removed
@@ -239,19 +285,6 @@ const styles = StyleSheet.create({
   location: {
     fontSize: 14,
     color: '#8B7355',
-  },
-  editProfileButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: '#9B7E5C',
-    borderRadius: 20,
-    paddingHorizontal: 32,
-    paddingVertical: 10,
-  },
-  editProfileText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#9B7E5C',
   },
   statsContainer: {
     backgroundColor: '#FFFFFF',
@@ -331,25 +364,35 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#8B7355',
   },
-  meetingCard: {
+  myMeetingCard: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: '#FAFAFA',
     marginHorizontal: 20,
+    marginBottom: 10,
+    backgroundColor: '#FAFAFA',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E5E5E5',
   },
-  meetingNumber: {
-    fontSize: 14,
+  myMeetingInfo: {
+    flex: 1,
+  },
+  myMeetingClubName: {
+    fontSize: 12,
+    color: '#8B7355',
+    marginBottom: 4,
+  },
+  myMeetingTitle: {
+    fontSize: 15,
     fontWeight: '600',
     color: '#5C4A3A',
-    marginRight: 8,
   },
-  meetingTitle: {
-    flex: 1,
+  myMeetingDate: {
     fontSize: 13,
-    color: '#5C4A3A',
+    fontWeight: '500',
+    color: '#A67C52',
   },
 });
