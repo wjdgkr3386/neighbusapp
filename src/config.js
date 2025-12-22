@@ -12,5 +12,6 @@ export const BASE_URL = 'http://127.0.0.1:8080';
 // 실제 서버용
 // export const BASE_URL = 'http://43.200.155.122:8080';
 
-
+//김정학 노트북
+// export const BASE_URL = 'http://10.155.174.62:8080';
 
