@@ -37,8 +37,8 @@ const SideMenu: React.FC<SideMenuProps> = ({ visible, onClose, navigation }) => 
       Animated.spring(slideAnim, {
         toValue: 0,
         useNativeDriver: true,
-        tension: 65,
-        friction: 11,
+        tension: 100, // Increased for faster response
+        friction: 20, // Increased to reduce bounciness
       }).start();
     } else {
       Animated.timing(slideAnim, {
@@ -348,6 +348,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
