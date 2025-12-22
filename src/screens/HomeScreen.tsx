@@ -82,7 +82,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     .then((data) => {
       if (data.clubs) {
         const mappedClubs: Club[] = data.clubs.map((club: any) => ({
-          id: club.Id?.toString() || club.clubId.toString(), // Use Id or clubId
+          id: club.id?.toString(), // Use the correct 'id' field
           clubName: club.clubName || '이름 없음',
           provinceName: club.provinceName || '지역 정보 없음',
           clubImg: club.clubImg || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800',
@@ -90,7 +90,10 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           memberCount: club.memberCount || 0, // Assuming field name, default to 0
           maxMembers: club.maxMembers || 0, // Assuming field name, default to 0
         }));
-        setClubs(mappedClubs);
+        const uniqueClubs = mappedClubs.filter((club, index, self) =>
+          index === self.findIndex((c) => c.id === club.id)
+        );
+        setClubs(uniqueClubs);
       } else {
         setClubs([]);
       }
