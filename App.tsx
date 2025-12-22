@@ -26,6 +26,7 @@ import FreeBoardDetailScreen from './src/screens/FreeBoardDetailScreen';
 import FreeBoardWriteScreen from './src/screens/FreeBoardWriteScreen';
 import GalleryDetailScreen from './src/screens/GalleryDetailScreen';
 import GalleryWriteScreen from './src/screens/GalleryWriteScreen';
+import ClubCreateScreen from './src/screens/ClubCreateScreen';
 
 // 네비게이션 스택에 포함될 화면들의 타입을 정의합니다.
 export type RootStackParamList = {
@@ -39,6 +40,7 @@ export type RootStackParamList = {
   Gallery: undefined;
   FreeBoardWrite: undefined;
   GalleryWrite: undefined;
+  ClubCreate: undefined;
   ClubDetail: { clubId: string };
   MeetingDetail: { meetingId: string; date: string };
   CreateMeeting: undefined;
@@ -88,6 +90,11 @@ function App(): React.JSX.Element {
           <Stack.Screen
             name="GalleryWrite"
             component={GalleryWriteScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="ClubCreate"
+            component={ClubCreateScreen}
             options={{ headerShown: false }}
           />
           <Stack.Screen

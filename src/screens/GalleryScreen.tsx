@@ -46,9 +46,9 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (evt, gestureState) => Math.abs(gestureState.dx) > 20,
+      onMoveShouldSetPanResponder: (evt, gestureState) => Math.abs(gestureState.dx) > 10,
       onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.dx < -50) setShowSideMenu(true);
+        if (gestureState.dx > 30) setShowSideMenu(true);
       },
     })
   ).current;
@@ -110,11 +110,7 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
 
       <BottomNavBar currentScreen="Gallery" />
 
-      <TouchableOpacity style={styles.fab} onPress={handleWritePost} activeOpacity={0.8}>
-        <Text style={styles.fabIcon}>+</Text>
-      </TouchableOpacity>
-
-      <SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
+<SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
     </SafeAreaView>
   );
 };
@@ -124,14 +120,13 @@ export default GalleryScreen;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: theme.colors.white,
+    backgroundColor: '#FFF8F0',
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 8, // Reduced padding
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderColor,
+    paddingBottom: 8,
+    backgroundColor: '#FFF8F0',
   },
   headerTitle: {
     fontSize: 24,
@@ -144,16 +139,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     gap: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderColor,
+    backgroundColor: '#FFF8F0',
   },
   searchInputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.bodyBg,
+    backgroundColor: theme.colors.white,
     borderRadius: 10,
     paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
   },
   searchIcon: {
     fontSize: 16,
@@ -169,10 +165,12 @@ const styles = StyleSheet.create({
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.bodyBg,
+    backgroundColor: theme.colors.white,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
   },
   sortButtonText: {
     fontSize: 14,
@@ -193,7 +191,7 @@ const styles = StyleSheet.create({
     margin: 8,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: theme.colors.bodyBg,
+    backgroundColor: theme.colors.white,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8 },
       android: { elevation: 5 },
@@ -219,25 +217,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 2,
-  },
-  fab: {
-    position: 'absolute',
-    right: 25,
-    bottom: 100,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 },
-      android: { elevation: 8 },
-    }),
-  },
-  fabIcon: {
-    fontSize: 30,
-    color: theme.colors.white,
-    lineHeight: 30,
   },
 });
