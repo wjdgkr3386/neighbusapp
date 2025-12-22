@@ -10,10 +10,14 @@ import {
   Alert,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import theme from '../styles/theme';
+import { BASE_URL } from '../config';
+import { useUser } from '../context/UserContext';
+import { launchImageLibrary, Asset } from 'react-native-image-picker';
 // In a real app, you would use a library like react-native-image-picker
 // import ImagePicker from 'react-native-image-picker';
 
@@ -26,7 +30,9 @@ const MAX_IMAGES = 6;
 const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<Asset[]>([]); // Stores image URIs
+  const [isSaving, setIsSaving] = useState(false); // New loading state for saving
+  const { user, token } = useUser(); // Get user and token
 
   const handleClose = () => {
     if (title || content || images.length > 0) {
@@ -47,7 +53,7 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       Alert.alert('알림', '제목을 입력해주세요.');
       return;
@@ -56,25 +62,91 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert('알림', '최소 1장 이상의 이미지를 선택해주세요.');
       return;
     }
+    if (!token || !user?.id) {
+      Alert.alert('오류', '로그인이 필요합니다.');
+      return;
+    }
 
-    Alert.alert('알림', '게시글이 등록되었습니다.', [
-      {
-        text: '확인',
-        onPress: () => navigation.goBack(),
-      },
-    ]);
+    setIsSaving(true); // Start loading
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    formData.append('writer', user.id.toString()); // Assuming user.id is the writer's ID
+    formData.append('id', user.id.toString()); // Also setting 'id' as per GalleryDTO
+
+    // Append images. Backend expects fileList[] of MultipartFile.
+    // Here, we simulate by sending URIs as if they were local file blobs.
+    // A real implementation would involve react-native-image-picker and
+    // proper Blob/File objects.
+    images.forEach(image => {
+      if (image.uri && image.fileName && image.type) {
+        formData.append('fileList', {
+          uri: image.uri,
+          name: image.fileName,
+          type: image.type,
+        } as any);
+      }
+    });
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/gallery/insertGallery`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // 'Content-Type': 'multipart/form-data' is NOT set manually for FormData
+        },
+        body: formData,
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok && responseData.status === 1) { // Assuming status 1 for success
+        Alert.alert('성공', '게시글이 성공적으로 등록되었습니다.', [
+          {
+            text: '확인',
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      } else {
+        // Backend might return status -1 for failure or other error messages
+        const errorMessage = responseData.message || '게시글 등록에 실패했습니다.';
+        Alert.alert('오류', errorMessage);
+      }
+    } catch (error) {
+      console.error('갤러리 게시글 등록 중 오류 발생:', error);
+      Alert.alert('오류', '네트워크 오류 또는 서버 통신에 실패했습니다.');
+    } finally {
+      setIsSaving(false); // End loading
+    }
   };
 
-  const handleSelectImage = () => {
+  const handleSelectImage = async () => {
     if (images.length >= MAX_IMAGES) {
       Alert.alert('알림', `이미지는 최대 ${MAX_IMAGES}장까지 추가할 수 있습니다.`);
       return;
     }
-    // Placeholder for image selection logic
-    // In a real app, you would launch the image picker here.
-    // For now, we'll just add placeholder images.
-    const newImage = `https://via.placeholder.com/400/A67C52/FFFFFF?text=Image+${images.length + 1}`;
-    setImages([...images, newImage]);
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: MAX_IMAGES - images.length, // Select multiple images
+        quality: 0.8,
+      });
+
+      if (result.didCancel) {
+        return; // User cancelled
+      }
+      if (result.errorCode) {
+        Alert.alert('오류', `이미지 선택 중 오류가 발생했습니다: ${result.errorMessage}`);
+        return;
+      }
+      if (result.assets) {
+        setImages([...images, ...result.assets]);
+      }
+    } catch (error) {
+      Alert.alert('오류', '이미지 라이브러리를 열 수 없습니다. 앱의 권한 설정을 확인해주세요.');
+      console.log(error);
+    }
   };
 
   const handleRemoveImage = (index: number) => {
@@ -148,9 +220,9 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
           </View>
 
           <View style={styles.imageGrid}>
-            {images.map((uri, index) => (
-              <View key={index} style={styles.imageContainer}>
-                <Image source={{ uri }} style={styles.imagePreview} />
+            {images.map((image, index) => (
+              <View key={image.fileName || index} style={styles.imageContainer}>
+                <Image source={{ uri: image.uri }} style={styles.imagePreview} />
                 <TouchableOpacity
                   style={styles.imageDeleteButton}
                   onPress={() => handleRemoveImage(index)}
@@ -167,6 +239,7 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
               <TouchableOpacity
                 style={styles.imageAddButton}
                 onPress={handleSelectImage}
+                disabled={isSaving}
               >
                 <Text style={styles.cameraIcon}>📷</Text>
                 <Text style={styles.imageAddText}>사진 추가</Text>
@@ -206,11 +279,15 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* 하단 버튼 영역 */}
       <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
+        <TouchableOpacity style={styles.cancelButton} onPress={handleClose} disabled={isSaving}>
           <Text style={styles.cancelButtonText}>취소</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.submitButton} onPress={handleSave}>
-          <Text style={styles.submitButtonText}>등록</Text>
+        <TouchableOpacity style={styles.submitButton} onPress={handleSave} disabled={isSaving}>
+          {isSaving ? (
+            <ActivityIndicator color={theme.colors.white} />
+          ) : (
+            <Text style={styles.submitButtonText}>등록</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
