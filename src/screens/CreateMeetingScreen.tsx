@@ -18,7 +18,7 @@ type Props = RootStackScreenProps<'CreateMeeting'>;
 
 const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
   const [summary, setSummary] = useState('');
-  const [date, setDate] = useState('2025-12-25'); // 예시 날짜
+  const [date, setDate] = useState(''); // 예시 날짜
   const [time, setTime] = useState('');
   const [locationSearch, setLocationSearch] = useState('');
   const [locationDetail, setLocationDetail] = useState('');
