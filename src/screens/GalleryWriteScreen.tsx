@@ -221,7 +221,7 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
 
           <View style={styles.imageGrid}>
             {images.map((image, index) => (
-              <View key={image.fileName || index} style={styles.imageContainer}>
+              <View key={image.uri || index} style={styles.imageContainer}>
                 <Image source={{ uri: image.uri }} style={styles.imagePreview} />
                 <TouchableOpacity
                   style={styles.imageDeleteButton}
