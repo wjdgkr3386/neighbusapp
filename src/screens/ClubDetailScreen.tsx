@@ -1,5 +1,5 @@
 // src/screens/ClubDetailScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,15 +8,18 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
+  Button,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import type { RootStackScreenProps } from '../../App';
+import theme from '../styles/theme';
+import { useUser } from '../context/UserContext';
+import { BASE_URL } from '../config';
 
 LocaleConfig.locales['ko'] = {
-  monthNames: [
-    '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'
-  ],
+  monthNames: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
   monthNamesShort: ['1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.', '10.', '11.', '12.'],
   dayNames: ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'],
   dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
@@ -26,18 +29,29 @@ LocaleConfig.defaultLocale = 'ko';
 
 type Props = RootStackScreenProps<'ClubDetail'>;
 
+type ClubDetailData = {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  imageUrl: string;
+  description: string;
+};
+
 const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
-  // In a real app, you'd fetch this data based on the clubId
   const { clubId } = route.params;
+  const { token } = useUser();
+
+  const [clubDetail, setClubDetail] = useState<ClubDetailData | null>(null);
+  const [isMember, setIsMember] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [selectedDate, setSelectedDate] = useState('');
-  const [meetings, setMeetings] = useState<Record<string, { id: string; summary: string }>>({
-    '2025-12-20': { id: 'm1', summary: '한강 플로깅' },
-    '2025-12-28': { id: 'm2', summary: '연말 총회' },
-  });
+  const [meetings, setMeetings] = useState<Record<string, { id: string; summary: string }>>({});
 
   const markedDates = Object.keys(meetings).reduce((acc, date) => {
-    acc[date] = { marked: true, dotColor: '#9B7E5C' };
+    acc[date] = { marked: true, dotColor: theme.colors.primary };
     return acc;
   }, {} as Record<string, any>);
 
@@ -47,15 +61,101 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     markedDates[selectedDate] = { ...markedDates[selectedDate], selected: true, selectedColor: '#D8D0C8' };
   }
 
-  const clubData = {
-    id: clubId,
-    name: '환경 보호 동아리',
-    category: '봉사',
-    location: '서울시 마포구',
-    imageUrl: 'https://picsum.photos/seed/picsum/400/200',
-    description:
-      '우리 동네를 더 깨끗하고 아름다운 곳으로 만들기 위해 모인 동아리입니다. 매주 주말 한강 공원, 경의선 숲길 등에서 플로깅 활동을 진행하며, 환경 보호 캠페인도 함께 기획하고 있습니다. 환경에 관심 있는 분이라면 누구나 환영합니다!',
+  const fetchClubDetail = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    if (!token) {
+      setError('로그인이 필요한 서비스입니다.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/club/${clubId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('동아리 정보를 불러오는데 실패했습니다.');
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.club) {
+        const backendClub = data.club;
+        setClubDetail({
+          id: backendClub.id?.toString() || '',
+          name: backendClub.clubName || '이름 없음',
+          category: backendClub.categoryName || '미분류', // Use categoryName directly
+          location: backendClub.cityName || '지역 미정',
+          imageUrl: backendClub.clubImg || 'https://picsum.photos/seed/picsum/400/200',
+          description: backendClub.clubInfo || '소개 없음',
+        });
+
+        if (data.recruitments && Array.isArray(data.recruitments)) {
+          const newMeetings: Record<string, { id: string; summary: string }> = {};
+          data.recruitments.forEach((r: any) => {
+            if (r.meetingDate) {
+              const datePart = r.meetingDate.split(' ')[0];
+              newMeetings[datePart] = {
+                id: r.id.toString(),
+                summary: r.title || '제목 없음',
+              };
+            }
+          });
+          setMeetings(newMeetings);
+        }
+
+        setIsMember(data.isMember || false);
+      } else {
+        setError(data.message || '동아리 정보를 찾을 수 없습니다.');
+      }
+    } catch (err: any) {
+      setError(err.message || '네트워크 오류가 발생했습니다.');
+      console.error('Error fetching club detail:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [clubId, token]);
+
+  useEffect(() => {
+    fetchClubDetail();
+  }, [fetchClubDetail]);
+
+  const handleJoinClub = () => {
+    // Note: This would be a POST request in a real app.
+    Alert.alert('가입', '동아리에 가입 신청을 보냈습니다.');
+    setIsMember(true); // Optimistic update
   };
+  
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={styles.loadingText}>동아리 정보를 불러오는 중...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
+        <Text style={styles.errorText}>{error}</Text>
+        <Button title="다시 시도" onPress={fetchClubDetail} color={theme.colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!clubDetail) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
+        <Text style={styles.errorText}>동아리 정보를 찾을 수 없습니다.</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -69,21 +169,21 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <Image source={{ uri: clubData.imageUrl }} style={styles.headerImage} />
+        <Image source={{ uri: clubDetail.imageUrl }} style={styles.headerImage} />
 
         <View style={styles.contentContainer}>
-          <Text style={styles.clubName}>{clubData.name}</Text>
+          <Text style={styles.clubName}>{clubDetail.name}</Text>
           <View style={styles.infoRow}>
-            <Text style={styles.infoChip}>🏷️ {clubData.category}</Text>
-            <Text style={styles.infoChip}>📍 {clubData.location}</Text>
+            <Text style={styles.infoChip}>🏷️ {clubDetail.category}</Text>
+            <Text style={styles.infoChip}>📍 {clubDetail.location}</Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>동아리 소개</Text>
-            <Text style={styles.description}>{clubData.description}</Text>
+            <Text style={styles.description}>{clubDetail.description}</Text>
           </View>
 
-          {/* 모임 일정 섹션 */}
+          {/* 모임 일정 섹션 (Placeholder data) */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>모임 일정</Text>
@@ -101,10 +201,10 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               }}
               markedDates={markedDates}
               theme={{
-                arrowColor: '#9B7E5C',
-                todayTextColor: '#9B7E5C',
+                arrowColor: theme.colors.primary,
+                todayTextColor: theme.colors.primary,
                 selectedDayBackgroundColor: '#D8D0C8',
-                dotColor: '#9B7E5C',
+                dotColor: theme.colors.primary,
               }}
             />
             {selectedDate && meetings[selectedDate] && (
@@ -127,14 +227,14 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.joinButton}
+          style={[styles.joinButton, isMember && styles.disabledButton]}
           activeOpacity={0.8}
-          onPress={() => Alert.alert('가입', '동아리에 가입 신청을 보냈습니다.')}
+          onPress={handleJoinClub}
+          disabled={isMember}
         >
-          <Text style={styles.joinButtonText}>동아리 가입하기</Text>
+          <Text style={styles.joinButtonText}>{isMember ? '가입된 동아리' : '동아리 가입하기'}</Text>
         </TouchableOpacity>
       </View>
-
     </SafeAreaView>
   );
 };
@@ -143,6 +243,21 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: theme.colors.textSecondary,
+  },
+  errorText: {
+    fontSize: 16,
+    color: theme.colors.danger,
+    textAlign: 'center',
+    marginBottom: 20,
   },
   container: {
     flex: 1,
