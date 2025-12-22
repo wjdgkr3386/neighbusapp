@@ -1,5 +1,4 @@
-// src/screens/GalleryScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,14 +9,16 @@ import {
   ImageBackground,
   FlatList,
   Platform,
+  ActivityIndicator,
+  Button,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-// Note: The original code assumed expo-linear-gradient, which is not a listed dependency.
-// I will use a simple View with an RGBA background as a fallback for the gradient effect.
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
 import theme from '../styles/theme';
+import { BASE_URL } from '../config';
+import { useUser } from '../context/UserContext';
 
 type Props = RootStackScreenProps<'Gallery'>;
 
@@ -26,22 +27,65 @@ type Post = {
   title: string;
   author: string;
   imageUrl: string;
-  height: number; // For Masonry layout
+  height: number;
 };
-
-const POSTS: Post[] = [
-  { id: '1', title: '우리 동네 풍경', author: '사진작가', imageUrl: 'https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800', height: 250 },
-  { id: '2', title: '귀여운 강아지', author: '멍멍이주인', imageUrl: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=800', height: 300 },
-  { id: '3', title: '오늘의 점심', author: '맛잘알', imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800', height: 300 },
-  { id: '4', title: '노을 사진', author: '하늘바라기', imageUrl: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800', height: 250 },
-  { id: '5', title: '골목길 고양이', author: '집사', imageUrl: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?q=80&w=800', height: 250 },
-  { id: '6', title: '새로 생긴 카페', author: '커피러버', imageUrl: 'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?q=80&w=800', height: 300 },
-];
 
 const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState('최신순');
   const [showSideMenu, setShowSideMenu] = useState(false);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { token } = useUser();
+
+  const fetchGalleryData = useCallback(() => {
+    setError(null);
+    setLoading(true);
+
+    if (!token) {
+      setError('로그인이 필요한 서비스입니다.');
+      setLoading(false);
+      return;
+    }
+
+    fetch(`${BASE_URL}/api/mobile/gallery/getGallery`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('데이터를 불러오는데 실패했습니다. 다시 시도해주세요.');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.status === 'success' && data.galleryMapList) {
+          const fetchedPosts: Post[] = data.galleryMapList.map((item: any) => ({
+            id: item.ID.toString(),
+            title: (item.TITLE || '').replace(/&nbsp;/g, ' '),
+            author: item.WRITER || 'Unknown',
+            imageUrl: (item.IMAGES && item.IMAGES.length > 0 && item.IMAGES[0].IMG) || `https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800`, // Placeholder
+            height: Math.floor(Math.random() * 100) + 250, // Random height for masonry
+          }));
+          setPosts(fetchedPosts);
+        } else {
+          throw new Error('갤러리 데이터를 가져오는데 실패했습니다.');
+        }
+      })
+      .catch(err => {
+        setError(err.message || '알 수 없는 오류가 발생했습니다.');
+        console.error('Error fetching gallery data:', err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [token]);
+
+  useEffect(() => {
+    fetchGalleryData();
+  }, [fetchGalleryData]);
 
   const panResponder = React.useRef(
     PanResponder.create({
@@ -56,7 +100,6 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const handleWritePost = () => navigation.navigate('GalleryWrite');
   const handlePostClick = (post: Post) => navigation.navigate('GalleryDetail', { postId: post.id });
   const handleSortPress = () => {
-    // In a real app, this would open a dropdown/modal to change the sort order
     console.log('Sort button pressed. Current order:', sortOrder);
   };
 
@@ -74,6 +117,37 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       </ImageBackground>
     </TouchableOpacity>
   );
+
+  const renderContent = () => {
+    if (loading) {
+      return <ActivityIndicator size="large" color={theme.colors.primary} style={styles.messageContainer} />;
+    }
+    if (error) {
+      return (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>{error}</Text>
+          {token && <Button title="다시 시도" onPress={fetchGalleryData} color={theme.colors.primary} />}
+        </View>
+      );
+    }
+    if (posts.length === 0) {
+      return (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>게시물이 없습니다.</Text>
+        </View>
+      );
+    }
+    return (
+      <FlatList
+        data={posts}
+        renderItem={renderGalleryItem}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.galleryList}
+        showsVerticalScrollIndicator={false}
+      />
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -99,14 +173,7 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={POSTS}
-        renderItem={renderGalleryItem}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.galleryList}
-        showsVerticalScrollIndicator={false}
-      />
+      {renderContent()}
 
       <BottomNavBar currentScreen="Gallery" />
 
@@ -217,5 +284,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 2,
+  },
+  
+  fab: {
+    position: 'absolute',
+    right: 25,
+    bottom: 100,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 },
+      android: { elevation: 8 },
+    }),
+  },
+  fabIcon: {
+    fontSize: 30,
+    color: theme.colors.white,
+    lineHeight: 30,
+  },
+  messageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  messageText: {
+    fontSize: 16,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
