@@ -4,8 +4,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type User = {
   id: string;
   uuid: string;
+  nickname: string;
   username: string;
   name: string;
+  image: string;
   grade: number;
 } | null;
 
