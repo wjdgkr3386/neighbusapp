@@ -48,17 +48,26 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedDate, setSelectedDate] = useState('');
-  const [meetings, setMeetings] = useState<Record<string, { id: string; summary: string }>>({});
+  const [meetings, setMeetings] = useState<Record<string, { id: string; summary: string }[]>>({});
 
   const markedDates = Object.keys(meetings).reduce((acc, date) => {
-    acc[date] = { marked: true, dotColor: theme.colors.primary };
+    acc[date] = { 
+      selected: true, 
+      selectedColor: '#F5EDE4', 
+      selectedTextColor: '#5C4A3A',
+      marked: true,
+      dotColor: theme.colors.primary,
+    };
     return acc;
   }, {} as Record<string, any>);
 
-  if (selectedDate && !markedDates[selectedDate]) {
-    markedDates[selectedDate] = { selected: true, selectedColor: '#D8D0C8' };
-  } else if (selectedDate && markedDates[selectedDate]) {
-    markedDates[selectedDate] = { ...markedDates[selectedDate], selected: true, selectedColor: '#D8D0C8' };
+  if (selectedDate) {
+    markedDates[selectedDate] = {
+      ...markedDates[selectedDate],
+      selected: true,
+      selectedColor: theme.colors.primary,
+      selectedTextColor: '#FFFFFF',
+    };
   }
 
   const fetchClubDetail = useCallback(async () => {
@@ -96,14 +105,17 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         });
 
         if (data.recruitments && Array.isArray(data.recruitments)) {
-          const newMeetings: Record<string, { id: string; summary: string }> = {};
+          const newMeetings: Record<string, { id: string; summary: string }[]> = {};
           data.recruitments.forEach((r: any) => {
             if (r.meetingDate) {
-              const datePart = r.meetingDate.split(' ')[0];
-              newMeetings[datePart] = {
+              const datePart = r.meetingDate.includes(' ') ? r.meetingDate.split(' ')[0] : r.meetingDate;
+              if (!newMeetings[datePart]) {
+                newMeetings[datePart] = [];
+              }
+              newMeetings[datePart].push({
                 id: r.id.toString(),
                 summary: r.title || '제목 없음',
-              };
+              });
             }
           });
           setMeetings(newMeetings);
@@ -189,7 +201,7 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               <Text style={styles.sectionTitle}>모임 일정</Text>
               <TouchableOpacity
                 style={styles.createMeetingButton}
-                onPress={() => navigation.navigate('CreateMeeting')}
+                onPress={() => navigation.navigate('CreateMeeting', { clubId })}
               >
                 <Text style={styles.createMeetingButtonText}>+ 모임 생성</Text>
               </TouchableOpacity>
@@ -207,21 +219,22 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                 dotColor: theme.colors.primary,
               }}
             />
-            {selectedDate && meetings[selectedDate] && (
+            {selectedDate && meetings[selectedDate] && meetings[selectedDate].map((meeting, index) => (
               <TouchableOpacity
+                key={`${selectedDate}-${index}`}
                 style={styles.meetingInfo}
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('MeetingDetail', {
-                  meetingId: meetings[selectedDate].id,
+                  meetingId: meeting.id,
                   date: selectedDate,
                 })}
               >
                 <View>
                   <Text style={styles.meetingDate}>{selectedDate}</Text>
-                  <Text style={styles.meetingSummary}>{meetings[selectedDate].summary}</Text>
+                  <Text style={styles.meetingSummary}>{meeting.summary}</Text>
                 </View>
               </TouchableOpacity>
-            )}
+            ))}
           </View>
         </View>
       </ScrollView>
