@@ -32,7 +32,6 @@ type Post = {
 
 const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState('최신순');
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +48,10 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    fetch(`${BASE_URL}/api/mobile/gallery/getGallery`, {
+    const keywordParam = searchQuery.trim() ? `?keyword=${encodeURIComponent(searchQuery.trim())}` : '';
+    const url = `${BASE_URL}/api/mobile/gallery/getGallery${keywordParam}`;
+
+    fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -88,7 +90,7 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
         setLoading(false);
         
       });
-  }, [token]);
+  }, [token, searchQuery]);
 
   useEffect(() => {
     fetchGalleryData();
@@ -106,9 +108,6 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleWritePost = () => navigation.navigate('GalleryWrite');
   const handlePostClick = (post: Post) => navigation.navigate('GalleryDetail', { postId: post.id });
-  const handleSortPress = () => {
-    console.log('Sort button pressed. Current order:', sortOrder);
-  };
 
   const renderGalleryItem = ({ item }: { item: Post }) => (
     <TouchableOpacity
@@ -172,12 +171,10 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
             placeholderTextColor={theme.colors.textLight}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onSubmitEditing={fetchGalleryData}
+            returnKeyType="search"
           />
         </View>
-        <TouchableOpacity style={styles.sortButton} onPress={handleSortPress}>
-          <Text style={styles.sortButtonText}>{sortOrder}</Text>
-          <Text style={styles.sortButtonIcon}>▼</Text>
-        </TouchableOpacity>
       </View>
 
       {renderContent()}
