@@ -43,7 +43,7 @@ export type RootStackParamList = {
   ClubCreate: undefined;
   ClubDetail: { clubId: string };
   MeetingDetail: { meetingId: string; date: string };
-  CreateMeeting: undefined;
+  CreateMeeting: { clubId: string };
   FreeBoardDetail: { postId: string };
   GalleryDetail: { postId: string };
   NoticeList: undefined;
