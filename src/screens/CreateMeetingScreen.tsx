@@ -18,7 +18,8 @@ import { useUser } from '../context/UserContext';
 
 type Props = RootStackScreenProps<'CreateMeeting'>;
 
-const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
+const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
+  const { clubId } = route.params;
   const { user, token } = useUser();
   const [summary, setSummary] = useState('');
   
@@ -50,13 +51,41 @@ const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleCreateMeeting = async () => {
-    if (!summary || !memberLimit || !locationDetail) {
-      Alert.alert('입력 오류', '필수 항목(이름, 인원, 장소)을 모두 입력해주세요.');
+    if (!summary.trim()) {
+      Alert.alert('입력 오류', '모임 이름을 입력해주세요.');
+      return;
+    }
+
+    if (!description.trim()) {
+      Alert.alert('입력 오류', '상세 설명을 입력해주세요.');
+      return;
+    }
+
+    // 날짜는 기본값이 현재 시간이므로 별도 체크 불필요하지만, 과거 시간 체크 등은 추가 가능
+    const now = new Date();
+    if (date < now) {
+      Alert.alert('입력 오류', '모임 시간은 현재 시간 이후로 설정해주세요.');
+      return;
+    }
+
+    if (!memberLimit.trim()) {
+      Alert.alert('입력 오류', '최대 인원을 입력해주세요.');
+      return;
+    }
+
+    const memberCount = parseInt(memberLimit, 10);
+    if (isNaN(memberCount) || memberCount <= 1) {
+      Alert.alert('입력 오류', '최대 인원은 2명 이상이어야 합니다.');
       return;
     }
 
     if (!selectedLocation) {
-      Alert.alert('장소 선택', '지도에서 모임 장소를 선택해주세요.');
+      Alert.alert('입력 오류', '지도에서 모임 장소를 선택해주세요.');
+      return;
+    }
+
+    if (!locationDetail.trim()) {
+      Alert.alert('입력 오류', '상세 장소 설명을 입력해주세요.');
       return;
     }
 
@@ -72,7 +101,7 @@ const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
       const meetingDateStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
       const payload = {
-        clubId: 1, 
+        clubId: parseInt(clubId, 10), 
         title: summary,
         content: description,
         address: locationDetail,
@@ -204,7 +233,6 @@ const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.map}
               initialRegion={region}
               onPress={handleMapPress}
-              moveOnMarkerPress={false}
             >
               {selectedLocation && (
                 <Marker
