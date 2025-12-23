@@ -1,4 +1,3 @@
-// src/screens/CreateMeetingScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -13,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar } from 'react-native-calendars';
 import type { RootStackScreenProps } from '../../App';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 
 type Props = RootStackScreenProps<'CreateMeeting'>;
 
@@ -147,10 +147,17 @@ const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
             value={locationSearch}
             onChangeText={setLocationSearch}
           />
-          <View style={styles.mapPlaceholder}>
-            <Text style={styles.mapPlaceholderText}>
-              외부 지도 API가 여기에 표시됩니다.
-            </Text>
+          <View>
+            <MapView
+              provider={PROVIDER_GOOGLE} 
+              initialRegion={{
+                latitude: 37.541,
+                longitude: 126.986,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+              style={styles.map}
+            />
           </View>
           <TextInput
             style={[styles.input, { marginTop: 12 }]}
@@ -312,6 +319,12 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
+  map: {
+    height: 250,
+    width: '100%',
+    borderRadius: 10,
+    marginTop: 12,
+  }
 });
 
 export default CreateMeetingScreen;
