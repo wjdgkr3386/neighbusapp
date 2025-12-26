@@ -63,8 +63,8 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
           author: item.writerNickname || '익명',
           date: item.createdAt ? item.createdAt.split('T')[0] : '', // YYYY-MM-DD
           views: item.viewCount || 0,
-          comments: 0,
-          likes: 0,
+          comments: item.commentCount || 0,
+          likes: item.likeCount || 0,
         }));
         setPosts(mappedPosts);
       }
