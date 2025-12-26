@@ -28,7 +28,6 @@ type Club = {
   clubImg: string;
   clubDescription: string;
   memberCount: number;
-  maxMembers: number;
 };
 
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
@@ -87,8 +86,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           provinceName: club.provinceName || '지역 정보 없음',
           clubImg: club.clubImg || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800',
           clubDescription: club.clubInfo || '소개 없음',
-          memberCount: club.memberCount || 0, // Assuming field name, default to 0
-          maxMembers: club.maxMembers || 0, // Assuming field name, default to 0
+          memberCount: club.memberCount || 0,
         }));
         const uniqueClubs = mappedClubs.filter((club, index, self) =>
           index === self.findIndex((c) => c.id === club.id)
@@ -129,7 +127,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
           </View>
           <View style={styles.metadataItem}>
             <Text style={styles.metadataIcon}>👥</Text>
-            <Text style={styles.metadataText}>{item.memberCount}/{item.maxMembers}명</Text>
+            <Text style={styles.metadataText}>{item.memberCount}명</Text>
           </View>
         </View>
       </View>
