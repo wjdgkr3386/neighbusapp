@@ -32,7 +32,6 @@ type Post = {
 
 const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState('최신순');
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +48,10 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    fetch(`${BASE_URL}/api/mobile/gallery/getGallery`, {
+    const keywordParam = searchQuery.trim() ? `?keyword=${encodeURIComponent(searchQuery.trim())}` : '';
+    const url = `${BASE_URL}/api/mobile/gallery/getGallery${keywordParam}`;
+
+    fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -58,20 +60,26 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
         if (!response.ok) {
           throw new Error('데이터를 불러오는데 실패했습니다. 다시 시도해주세요.');
         }
-        return response.json();
+        return response.text(); // Get raw text first
       })
-      .then(data => {
-        if (data.status === 'success' && data.galleryMapList) {
-          const fetchedPosts: Post[] = data.galleryMapList.map((item: any) => ({
-            id: item.ID.toString(),
-            title: (item.TITLE || '').replace(/&nbsp;/g, ' '),
-            author: item.WRITER || 'Unknown',
-            imageUrl: (item.IMAGES && item.IMAGES.length > 0 && item.IMAGES[0].IMG) || `https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800`, // Placeholder
-            height: Math.floor(Math.random() * 100) + 250, // Random height for masonry
-          }));
-          setPosts(fetchedPosts);
-        } else {
-          throw new Error('갤러리 데이터를 가져오는데 실패했습니다.');
+      .then(text => {
+        console.log("Raw server response:", text); // Log the raw response
+        try {
+          const data = JSON.parse(text); // Manually parse the text
+          if (data.status === 'success' && data.galleryMapList) {
+            const fetchedPosts: Post[] = data.galleryMapList.map((item: any) => ({
+              id: item.ID.toString(),
+              title: (item.TITLE || '').replace(/&nbsp;/g, ' '),
+              author: item.WRITER || 'Unknown',
+              imageUrl: (item.IMAGES && item.IMAGES.length > 0 && item.IMAGES[0].IMG) || `https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800`, // Placeholder
+              height: Math.floor(Math.random() * 100) + 250, // Random height for masonry
+            }));
+            setPosts(fetchedPosts);
+          } else {
+            throw new Error('갤러리 데이터를 가져오는데 실패했습니다.');
+          }
+        } catch (jsonError) {
+          throw new Error('서버 응답을 처리하는 중 오류가 발생했습니다 (JSON Parse Error).');
         }
       })
       .catch(err => {
@@ -80,8 +88,9 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       })
       .finally(() => {
         setLoading(false);
+        
       });
-  }, [token]);
+  }, [token, searchQuery]);
 
   useEffect(() => {
     fetchGalleryData();
@@ -99,9 +108,6 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleWritePost = () => navigation.navigate('GalleryWrite');
   const handlePostClick = (post: Post) => navigation.navigate('GalleryDetail', { postId: post.id });
-  const handleSortPress = () => {
-    console.log('Sort button pressed. Current order:', sortOrder);
-  };
 
   const renderGalleryItem = ({ item }: { item: Post }) => (
     <TouchableOpacity
@@ -165,12 +171,10 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
             placeholderTextColor={theme.colors.textLight}
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onSubmitEditing={fetchGalleryData}
+            returnKeyType="search"
           />
         </View>
-        <TouchableOpacity style={styles.sortButton} onPress={handleSortPress}>
-          <Text style={styles.sortButtonText}>{sortOrder}</Text>
-          <Text style={styles.sortButtonIcon}>▼</Text>
-        </TouchableOpacity>
       </View>
 
       {renderContent()}
