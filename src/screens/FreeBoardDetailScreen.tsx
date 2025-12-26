@@ -1,5 +1,5 @@
 // src/screens/FreeBoardDetailScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,59 +10,138 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
+  Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import RenderHtml from 'react-native-render-html';
 import type { RootStackScreenProps } from '../../App';
 import theme from '../styles/theme';
+import { useUser } from '../context/UserContext';
+import { BASE_URL } from '../config';
 
 type Props = RootStackScreenProps<'FreeBoardDetail'>;
 
+type PostDetail = {
+  id: string;
+  category: string;
+  title: string;
+  author: string;
+  avatarUrl: string;
+  date: string;
+  content: string;
+  views: number;
+  likes: number;
+};
+
+type Comment = {
+  id: string;
+  author: string;
+  avatarUrl: string;
+  text: string;
+  date: string;
+};
+
 const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { postId } = route.params;
-
-  // In a real app, you'd fetch post data and comments based on postId
-  const postData = {
-    id: postId,
-    category: '후기',
-    title: '한강 러닝크루 후기',
-    author: '러닝매니아',
-    avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-    date: '5시간 전',
-    content: `지난 주말 한강에서 진행한 러닝 모임 너무 좋았어요! 
-
-날씨도 완벽했고, 처음 나오신 분들도 다들 잘 적응해서 즐겁게 달릴 수 있었습니다. 저희 동아리는 매주 토요일 아침 8시에 모여서 달리니, 관심 있는 분들은 언제든지 채팅 주세요!`,
-    views: 89,
-    likes: 23,
-  };
-
-  const [comments, setComments] = useState([
-    { id: 'c1', author: '맛집탐험가', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', text: '오, 저도 다음엔 참여해보고 싶네요!', date: '4시간 전' },
-    { id: 'c2', author: '환경지킴이', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704f', text: '멋진 활동이네요! 응원합니다.', date: '2시간 전' },
-  ]);
+  const { token } = useUser();
+  const { width } = useWindowDimensions();
+  
+  const [postData, setPostData] = useState<PostDetail | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [reactionInfo, setReactionInfo] = useState<{ likeCount: number; userReaction: number | null }>({ 
+    likeCount: 0, 
+    userReaction: null 
+  });
+
+  const fetchPostDetail = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/freeboard/${postId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const { post, reaction, comments: fetchedComments } = data;
+
+        // 게시글 데이터 매핑
+        setPostData({
+          id: post.id.toString(),
+          category: post.clubName || '자유',
+          title: post.title,
+          author: post.writerNickname || post.writerUsername || '익명',
+          avatarUrl: post.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.writerNickname || 'U')}&background=random`,
+          date: post.createdAt ? post.createdAt.replace('T', ' ').substring(0, 16) : '',
+          content: post.content,
+          views: post.viewCount,
+          likes: reaction.likeCount || 0,
+        });
+
+        // 반응 정보 설정
+        setReactionInfo({
+          likeCount: reaction.likeCount || 0,
+          userReaction: reaction.userReaction, // 1: like, 2: dislike
+        });
+
+        // 댓글 데이터 매핑
+        if (Array.isArray(fetchedComments)) {
+          const mappedComments = fetchedComments.map((c: any) => ({
+            id: c.id?.toString() || Math.random().toString(),
+            author: c.nickname || c.writerUsername || '익명',
+            avatarUrl: c.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.nickname || 'U')}&background=random`,
+            text: c.content,
+            date: c.createdAt ? c.createdAt.replace('T', ' ').substring(0, 16) : '',
+          }));
+          setComments(mappedComments);
+        }
+      } else {
+        Alert.alert('오류', data.message || '게시글을 불러올 수 없습니다.');
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('Fetch detail error:', error);
+      Alert.alert('오류', '네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  }, [postId, token, navigation]);
+
+  useEffect(() => {
+    fetchPostDetail();
+  }, [fetchPostDetail]);
 
   const handleAddComment = () => {
     if (newComment.trim()) {
-      setComments([
-        ...comments,
-        {
-          id: `c${Date.now()}`,
-          author: '나',
-          avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704a',
-          text: newComment,
-          date: '방금 전',
-        },
-      ]);
+      Alert.alert('알림', '댓글 등록 기능은 준비 중입니다.');
       setNewComment('');
     }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (!postData) {
+    return null; 
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={100}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -85,16 +164,38 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               </View>
             </View>
 
-            {/* Title and Content */}
+            {/* Title */}
             <Text style={styles.postTitle}>{postData.title}</Text>
-            <Text style={styles.postContent}>{postData.content}</Text>
+            
+            {/* HTML Content Rendering */}
+            <RenderHtml
+              contentWidth={width - 40}
+              source={{ html: postData.content }}
+              tagsStyles={{
+                body: {
+                  fontSize: 16,
+                  lineHeight: 26,
+                  color: theme.colors.textSecondary,
+                },
+                img: {
+                  maxWidth: '100%',
+                  borderRadius: 8,
+                  marginVertical: 10,
+                },
+                hr: {
+                  borderTopWidth: 1,
+                  borderTopColor: theme.colors.borderColor,
+                  marginVertical: 15,
+                }
+              }}
+            />
           </View>
 
           {/* Action Bar */}
           <View style={styles.actionBar}>
             <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionIcon}>❤️</Text>
-              <Text style={styles.actionText}>좋아요 {postData.likes}</Text>
+              <Text style={styles.actionIcon}>{reactionInfo.userReaction === 1 ? '❤️' : '🤍'}</Text>
+              <Text style={styles.actionText}>좋아요 {reactionInfo.likeCount}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.actionIcon}>💬</Text>
@@ -118,6 +219,11 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                 </View>
               </View>
             ))}
+            {comments.length === 0 && (
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <Text style={{ color: theme.colors.textLight }}>첫 댓글을 남겨보세요.</Text>
+              </View>
+            )}
           </View>
         </ScrollView>
 
@@ -129,6 +235,7 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             placeholderTextColor={theme.colors.textLight}
             value={newComment}
             onChangeText={setNewComment}
+            multiline={false}
           />
           <TouchableOpacity style={styles.sendButton} onPress={handleAddComment}>
             <Text style={styles.sendButtonText}>등록</Text>
@@ -197,11 +304,6 @@ const styles = StyleSheet.create({
     color: theme.colors.textPrimary,
     marginBottom: 20,
     lineHeight: 32,
-  },
-  postContent: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: theme.colors.textSecondary,
   },
   actionBar: {
     flexDirection: 'row',

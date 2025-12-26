@@ -1,5 +1,5 @@
-// src/screens/GalleryDetailScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Alert } from 'react-native';
 import {
   View,
   Text,
@@ -10,51 +10,263 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
+  Button,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import theme from '../styles/theme';
+import { BASE_URL } from '../config';
+import { useUser } from '../context/UserContext';
 
 type Props = RootStackScreenProps<'GalleryDetail'>;
 
+type CommentType = {
+  ID: number;
+  WRITER: string;
+  CONTENT: string;
+  CREATED_AT: string;
+  avatarUrl?: string; // Will use WRITER_IMAGE for display
+  WRITER_IMAGE?: string; // Actual image path for the commenter, if available
+  REPLIES?: CommentType[]; // Nested replies
+};
+
+type GalleryPost = {
+  ID: number;
+  TITLE: string;
+  WRITER: string;
+  CREATED_AT: string;
+  CONTENT: string;
+  IMAGES: { ID: number; IMG: string; GALLERY: number }[];
+  VIEW_COUNT: number;
+  likes: number; // Assuming this comes from reaction data
+  avatarUrl?: string; // Will use WRITER_IMAGE for display
+  WRITER_IMAGE?: string; // Actual image path for the post author
+  COMMENTS?: CommentType[];
+};
+
 const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { postId } = route.params;
+  const { token, user } = useUser();
 
-  // In a real app, you'd fetch post data and comments based on postId
-  const postData = {
-    id: postId,
-    title: '우리 동네 풍경',
-    author: '사진작가',
-    avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-    date: '1일 전',
-    content: `동네 한바퀴 돌면서 찍어본 사진들입니다. 
+  const [galleryPost, setGalleryPost] = useState<GalleryPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  const fetchGalleryDetail = useCallback(async () => {
+    // We don't want to show the main loading spinner for a refresh
+    if (!galleryPost) {
+      setLoading(true);
+    }
+    setError(null);
+    if (!token) {
+      setError('로그인이 필요한 서비스입니다.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/gallery/detail/${postId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        setError('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+        return;
+      }
+      if (!response.ok) {
+        throw new Error('갤러리 상세 정보를 불러오는데 실패했습니다.');
+      }
+
+      const responseData = await response.json();
+
+      if (responseData.status === 'success' && responseData.galleryMap) {
+        const gm = responseData.galleryMap;
+        const reaction = responseData.reaction;
+
+        // Clean &nbsp; from title and content
+        const titleCleaned = (gm.TITLE || '').replace(/&nbsp;/g, ' ');
+        const contentCleaned = (gm.CONTENT || '').replace(/&nbsp;/g, ' ');
+
+        // Map comments and use placeholder for avatar if not provided by backend
+        const mappedComments: CommentType[] = (gm.COMMENTS || []).map((comment: any) => ({
+          ID: comment.ID,
+          WRITER: comment.WRITER,
+          CONTENT: comment.CONTENT,
+          CREATED_AT: comment.CREATED_AT,
+          avatarUrl: comment.WRITER_IMAGE || 'https://i.pravatar.cc/150?u=comment-user', // Use WRITER_IMAGE if backend provides, else placeholder
+          // REPLIES are not currently handled here, but the type allows it
+        }));
+
+        setGalleryPost({
+          ID: gm.ID,
+          TITLE: titleCleaned,
+          WRITER: gm.WRITER,
+          CREATED_AT: gm.CREATED_AT,
+          CONTENT: contentCleaned,
+          IMAGES: gm.IMAGES || [],
+          VIEW_COUNT: gm.VIEW_COUNT,
+          likes: reaction?.likeCount || 0,
+          avatarUrl: gm.WRITER_IMAGE || 'https://i.pravatar.cc/150?u=post-author', // Use WRITER_IMAGE for post author, else placeholder
+          WRITER_IMAGE: gm.WRITER_IMAGE, // Store actual image path
+          COMMENTS: mappedComments, // Use mapped comments
+        });
+      } else {
+        setError(responseData.message || '게시글을 찾을 수 없습니다.');
+      }
+    } catch (err: any) {
+      setError(err.message || '네트워크 오류가 발생했습니다.');
+      console.error('Error fetching gallery detail:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [postId, token, galleryPost]);
+
+  useEffect(() => {
+    fetchGalleryDetail();
+  }, [postId, token]); 
+
+  const handleAddComment = async () => {
+    if (!newCommentText.trim() || !galleryPost || !user) {
+      return;
+    }
     
-    숨겨진 포토스팟이 많네요. 다들 즐거운 주말 보내세요!`,
-    imageUrl: 'https://via.placeholder.com/400/D2B48C/FFFFFF?text=Neighbus+Gallery',
-    views: 152,
-    likes: 45,
+    setIsSubmittingComment(true);
+
+    const formData = new FormData();
+    formData.append('comment', newCommentText);
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/gallery/insertComment/${galleryPost.ID}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok && responseData.success) {
+        setNewCommentText('');
+        // Optimistically update the UI with the new comment's image
+        const newComment: CommentType = {
+          ID: Date.now(), // Temporary ID for optimistic update
+          WRITER: user.nickname || user.username || '익명', // Use user's nickname or username
+          CONTENT: newCommentText,
+          CREATED_AT: new Date().toISOString(),
+          avatarUrl: user.image || 'https://i.pravatar.cc/150?u=current-user', // Use user's actual image if available
+        };
+
+        setGalleryPost(prevPost => {
+          if (!prevPost) return null;
+          return {
+            ...prevPost,
+            COMMENTS: [...(prevPost.COMMENTS || []), newComment],
+          };
+        });
+        // await fetchGalleryDetail(); // Refetch to get the latest comments and confirmed ID
+      } else {
+        Alert.alert('오류', responseData.message || '댓글 등록에 실패했습니다.');
+      }
+    } catch (error) {
+      Alert.alert('오류', '댓글 등록 중 오류가 발생했습니다.');
+      console.error('Error adding comment:', error);
+    } finally {
+      setIsSubmittingComment(false);
+    }
   };
 
-  const [comments, setComments] = useState([
-    { id: 'c1', author: '하늘바라기', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', text: '사진 너무 예뻐요!', date: '20시간 전' },
-    { id: 'c2', author: '멍멍이주인', avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704f', text: '여기 어디인가요? 저도 가보고 싶네요.', date: '15시간 전' },
-  ]);
-  const [newComment, setNewComment] = useState('');
-
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      setComments([
-        ...comments,
-        {
-          id: `c${Date.now()}`,
-          author: '나',
-          avatarUrl: 'https://i.pravatar.cc/150?u=a042581f4e29026704a',
-          text: newComment,
-          date: '방금 전',
-        },
-      ]);
-      setNewComment('');
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.messageContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.messageText}>상세 정보 로딩 중...</Text>
+        </View>
+      );
     }
+
+    if (error) {
+      return (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>{error}</Text>
+          {token && <Button title="다시 시도" onPress={fetchGalleryDetail} color={theme.colors.primary} />}
+        </View>
+      );
+    }
+
+    if (!galleryPost) {
+      return (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>게시글을 찾을 수 없습니다.</Text>
+        </View>
+      );
+    }
+
+    const firstImageUrl = galleryPost.IMAGES[0]?.IMG || 'https://via.placeholder.com/400/D2B48C/FFFFFF?text=No+Image';
+
+    return (
+      <ScrollView style={styles.container}>
+        {/* Post Header */}
+        <View style={styles.contentWrapper}>
+          <View style={styles.authorInfo}>
+            <Image source={{ uri: galleryPost.avatarUrl }} style={styles.authorAvatar} />
+            <View>
+              <Text style={styles.authorName}>{galleryPost.WRITER}</Text>
+              <Text style={styles.postDate}>
+                {new Date(galleryPost.CREATED_AT).toLocaleDateString()} · 조회 {galleryPost.VIEW_COUNT}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.postTitle}>{galleryPost.TITLE}</Text>
+        </View>
+
+        {/* Image */}
+        {firstImageUrl && (
+          <Image source={{ uri: firstImageUrl }} style={styles.postImage} />
+        )}
+
+        {/* Post Content */}
+        <View style={styles.contentWrapper}>
+          <Text style={styles.postContent}>{galleryPost.CONTENT}</Text>
+        </View>
+
+        {/* Action Bar */}
+        <View style={styles.actionBar}>
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionIcon}>❤️</Text>
+            <Text style={styles.actionText}>좋아요 {galleryPost.likes}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionIcon}>💬</Text>
+            <Text style={styles.actionText}>댓글 {galleryPost.COMMENTS?.length || 0}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}>
+            <Text style={styles.actionIcon}>🔖</Text>
+            <Text style={styles.actionText}>저장</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Comments Section */}
+        <View style={styles.commentsSection}>
+          {galleryPost.COMMENTS?.map((comment) => (
+            <View key={comment.ID} style={styles.comment}>
+              <Image source={{ uri: comment.avatarUrl || 'https://i.pravatar.cc/150?u=comment-user' }} style={styles.commentAvatar} />
+              <View style={styles.commentBody}>
+                <Text style={styles.commentAuthor}>{comment.WRITER}</Text>
+                <Text style={styles.commentText}>{comment.CONTENT}</Text>
+                <Text style={styles.commentDate}>{new Date(comment.CREATED_AT).toLocaleString()}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    );
   };
 
   return (
@@ -74,59 +286,7 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.container}>
-          {/* Post Header */}
-          <View style={styles.contentWrapper}>
-            <View style={styles.authorInfo}>
-              <Image source={{ uri: postData.avatarUrl }} style={styles.authorAvatar} />
-              <View>
-                <Text style={styles.authorName}>{postData.author}</Text>
-                <Text style={styles.postDate}>{postData.date} · 조회 {postData.views}</Text>
-              </View>
-            </View>
-            <Text style={styles.postTitle}>{postData.title}</Text>
-          </View>
-
-          {/* Image */}
-          {postData.imageUrl && (
-            <Image source={{ uri: postData.imageUrl }} style={styles.postImage} />
-          )}
-
-          {/* Post Content */}
-          <View style={styles.contentWrapper}>
-            <Text style={styles.postContent}>{postData.content}</Text>
-          </View>
-
-          {/* Action Bar */}
-          <View style={styles.actionBar}>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionIcon}>❤️</Text>
-              <Text style={styles.actionText}>좋아요 {postData.likes}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionIcon}>💬</Text>
-              <Text style={styles.actionText}>댓글 {comments.length}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionIcon}>🔖</Text>
-              <Text style={styles.actionText}>저장</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Comments Section */}
-          <View style={styles.commentsSection}>
-            {comments.map((comment) => (
-              <View key={comment.id} style={styles.comment}>
-                <Image source={{ uri: comment.avatarUrl }} style={styles.commentAvatar} />
-                <View style={styles.commentBody}>
-                  <Text style={styles.commentAuthor}>{comment.author}</Text>
-                  <Text style={styles.commentText}>{comment.text}</Text>
-                  <Text style={styles.commentDate}>{comment.date}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
+        {renderContent()}
 
         {/* Comment Input */}
         <View style={styles.commentInputContainer}>
@@ -134,11 +294,20 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             style={styles.commentInput}
             placeholder="댓글을 입력하세요..."
             placeholderTextColor={theme.colors.textLight}
-            value={newComment}
-            onChangeText={setNewComment}
+            value={newCommentText}
+            onChangeText={setNewCommentText}
+            editable={!!token && !isSubmittingComment} // Disable if not logged in or submitting
           />
-          <TouchableOpacity style={styles.sendButton} onPress={handleAddComment}>
-            <Text style={styles.sendButtonText}>등록</Text>
+          <TouchableOpacity 
+            style={styles.sendButton} 
+            onPress={handleAddComment} 
+            disabled={!token || !newCommentText.trim() || isSubmittingComment}
+          >
+            {isSubmittingComment ? (
+              <ActivityIndicator color={theme.colors.primary} />
+            ) : (
+              <Text style={styles.sendButtonText}>등록</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -302,6 +471,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.primary,
     fontWeight: '600',
+  },
+  messageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  messageText: {
+    fontSize: 16,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: 10,
   },
 });
 

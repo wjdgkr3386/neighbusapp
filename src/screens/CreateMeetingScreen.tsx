@@ -1,4 +1,3 @@
-// src/screens/CreateMeetingScreen.tsx
 import React, { useState } from 'react';
 import {
   View,
@@ -8,32 +7,147 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar } from 'react-native-calendars';
+import DatePicker from 'react-native-date-picker';
+import MapView, { PROVIDER_GOOGLE, Marker, MapPressEvent } from 'react-native-maps';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { RootStackScreenProps } from '../../App';
+import { BASE_URL } from '../config';
+import { useUser } from '../context/UserContext';
 
 type Props = RootStackScreenProps<'CreateMeeting'>;
 
-const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
+const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
+  const { clubId } = route.params;
+  const { user, token } = useUser();
   const [summary, setSummary] = useState('');
-  const [date, setDate] = useState('2025-12-25'); // 예시 날짜
-  const [time, setTime] = useState('');
-  const [locationSearch, setLocationSearch] = useState('');
+  
+  // 날짜와 시간을 하나의 Date 객체로 관리
+  const [date, setDate] = useState(new Date());
+  const [open, setOpen] = useState(false); // DatePicker 열림 상태
+  
   const [locationDetail, setLocationDetail] = useState('');
   const [memberLimit, setMemberLimit] = useState('');
   const [description, setDescription] = useState('');
-  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
-  const [timeAmPm, setTimeAmPm] = useState<'오전' | '오후'>('오후');
 
-  const handleCreateMeeting = () => {
-    if (!summary || !time || !locationSearch) {
-      Alert.alert('입력 오류', '모임 이름, 시간, 장소를 모두 입력해주세요.');
+  const [selectedLocation, setSelectedLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  const [region, setRegion] = useState({
+    latitude: 37.5665,
+    longitude: 126.978,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  });
+
+  // 지도 클릭 핸들러
+  const handleMapPress = (e: MapPressEvent) => {
+    const coordinate = e.nativeEvent.coordinate;
+    setSelectedLocation(coordinate);
+    console.log('Selected Location:', coordinate);
+  };
+
+  const handleCreateMeeting = async () => {
+    if (!summary.trim()) {
+      Alert.alert('입력 오류', '모임 이름을 입력해주세요.');
       return;
     }
-    Alert.alert('모임 생성 완료', `"${summary}" 모임이 생성되었습니다.`);
-    navigation.goBack();
+
+    if (!description.trim()) {
+      Alert.alert('입력 오류', '상세 설명을 입력해주세요.');
+      return;
+    }
+
+    // 날짜는 기본값이 현재 시간이므로 별도 체크 불필요하지만, 과거 시간 체크 등은 추가 가능
+    const now = new Date();
+    if (date < now) {
+      Alert.alert('입력 오류', '모임 시간은 현재 시간 이후로 설정해주세요.');
+      return;
+    }
+
+    if (!memberLimit.trim()) {
+      Alert.alert('입력 오류', '최대 인원을 입력해주세요.');
+      return;
+    }
+
+    const memberCount = parseInt(memberLimit, 10);
+    if (isNaN(memberCount) || memberCount <= 1) {
+      Alert.alert('입력 오류', '최대 인원은 2명 이상이어야 합니다.');
+      return;
+    }
+
+    if (!selectedLocation) {
+      Alert.alert('입력 오류', '지도에서 모임 장소를 선택해주세요.');
+      return;
+    }
+
+    if (!locationDetail.trim()) {
+      Alert.alert('입력 오류', '상세 장소 설명을 입력해주세요.');
+      return;
+    }
+
+    try {
+      // Date 객체를 "YYYY-MM-DD HH:mm:ss" 형식 문자열로 변환
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const seconds = '00';
+      
+      const meetingDateStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+      const payload = {
+        clubId: parseInt(clubId, 10), 
+        title: summary,
+        content: description,
+        address: locationDetail,
+        maxUser: parseInt(memberLimit, 10),
+        meetingDate: meetingDateStr,
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+        status: 'OPEN',
+      };
+
+      console.log('Sending payload:', payload);
+
+      const response = await fetch(`${BASE_URL}/api/mobile/recruitment/new`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '', 
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        Alert.alert('모임 생성 완료', data.message || '모임이 성공적으로 생성되었습니다.');
+        navigation.goBack();
+      } else {
+        Alert.alert('생성 실패', data.message || '모임 생성 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Create meeting error:', error);
+      Alert.alert('오류', '서버 통신 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 날짜/시간 포맷팅 함수 (화면 표시용)
+  const formatDisplayDate = (d: Date) => {
+    const year = d.getFullYear();
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const hour = d.getHours();
+    const minute = d.getMinutes().toString().padStart(2, '0');
+    const ampm = hour >= 12 ? '오후' : '오전';
+    const displayHour = hour % 12 || 12; // 0시는 12시로 표시
+
+    return `${year}년 ${month}월 ${day}일 ${ampm} ${displayHour}:${minute}`;
   };
 
   return (
@@ -70,124 +184,81 @@ const CreateMeetingScreen: React.FC<Props> = ({ navigation }) => {
           />
         </View>
 
-        <View style={styles.row}>
-          <View style={[styles.formGroup, { flex: 1.5 }]}>
-            <Text style={styles.label}>날짜</Text>
-            <TouchableOpacity
-              style={styles.input}
-              onPress={() => setDatePickerVisible(true)}
-            >
-              <Text style={styles.inputText}>{date}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={[styles.formGroup, styles.flex]}>
-            <Text style={styles.label}>최대 인원</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="숫자만"
-              value={memberLimit}
-              onChangeText={setMemberLimit}
-              keyboardType="number-pad"
-            />
-          </View>
+        {/* 날짜 및 시간 선택 (통합) */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>날짜 및 시간</Text>
+          <TouchableOpacity
+            style={styles.iconInput}
+            onPress={() => setOpen(true)}
+          >
+            <Icon name="calendar-clock" size={20} color="#9B7E5C" style={styles.inputIcon} />
+            <Text style={styles.inputText}>{formatDisplayDate(date)}</Text>
+          </TouchableOpacity>
+          <DatePicker
+            modal
+            open={open}
+            date={date}
+            onConfirm={(selectedDate) => {
+              setOpen(false);
+              setDate(selectedDate);
+            }}
+            onCancel={() => {
+              setOpen(false);
+            }}
+            mode="datetime" // 날짜와 시간 동시 선택
+            title="모임 날짜와 시간 선택"
+            confirmText="확인"
+            cancelText="취소"
+          />
         </View>
 
         <View style={styles.formGroup}>
-          <Text style={styles.label}>시간</Text>
-          <View style={styles.timeInputContainer}>
-            <View style={styles.amPmContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.amPmButton,
-                  timeAmPm === '오전' && styles.amPmButtonActive,
-                ]}
-                onPress={() => setTimeAmPm('오전')}
-              >
-                <Text
-                  style={[
-                    styles.amPmButtonText,
-                    timeAmPm === '오전' && styles.amPmButtonTextActive,
-                  ]}
-                >
-                  오전
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.amPmButton,
-                  timeAmPm === '오후' && styles.amPmButtonActive,
-                ]}
-                onPress={() => setTimeAmPm('오후')}
-              >
-                <Text
-                  style={[
-                    styles.amPmButtonText,
-                    timeAmPm === '오후' && styles.amPmButtonTextActive,
-                  ]}
-                >
-                  오후
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <TextInput
-              style={[styles.input, styles.timeInput]}
-              placeholder="2 : 00"
-              value={time}
-              onChangeText={setTime}
-              keyboardType="number-pad"
-            />
-          </View>
+          <Text style={styles.label}>최대 인원</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="숫자만"
+            value={memberLimit}
+            onChangeText={setMemberLimit}
+            keyboardType="number-pad"
+          />
         </View>
+
+        {/* 기존 시간 입력 필드 제거됨 */}
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>장소</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="모임 장소를 검색하세요"
-            value={locationSearch}
-            onChangeText={setLocationSearch}
-          />
-          <View style={styles.mapPlaceholder}>
-            <Text style={styles.mapPlaceholderText}>
-              외부 지도 API가 여기에 표시됩니다.
-            </Text>
+          <View style={styles.mapWrapper}>
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.map}
+              initialRegion={region}
+              onPress={handleMapPress}
+            >
+              {selectedLocation && (
+                <Marker
+                  coordinate={selectedLocation}
+                  title="선택한 위치"
+                />
+              )}
+            </MapView>
           </View>
+
+          {selectedLocation && (
+            <View style={styles.locationInfo}>
+              <Text style={styles.locationText}>
+                {`위도: ${selectedLocation.latitude.toFixed(6)}, 경도: ${selectedLocation.longitude.toFixed(6)}`}
+              </Text>
+            </View>
+          )}
+
           <TextInput
             style={[styles.input, { marginTop: 12 }]}
-            placeholder="상세 주소 (예: 2층 카페 안쪽)"
+            placeholder="상세 장소 설명 (예: 2층 카페 안쪽)"
             value={locationDetail}
             onChangeText={setLocationDetail}
           />
         </View>
       </ScrollView>
-
-      <Modal
-        transparent={true}
-        visible={isDatePickerVisible}
-        onRequestClose={() => setDatePickerVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          onPress={() => setDatePickerVisible(false)}
-        >
-          <View style={styles.calendarModalContainer}>
-            <Calendar
-              current={date}
-              onDayPress={(day) => {
-                setDate(day.dateString);
-                setDatePickerVisible(false);
-              }}
-              markedDates={{
-                [date]: { selected: true, selectedColor: '#9B7E5C' },
-              }}
-              theme={{
-                arrowColor: '#9B7E5C',
-                todayTextColor: '#9B7E5C',
-              }}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -241,6 +312,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     justifyContent: 'center',
   },
+  iconInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F7F5',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+  },
+  inputIcon: {
+    marginRight: 8,
+  },
   inputText: {
     fontSize: 16,
     color: '#333',
@@ -256,61 +340,29 @@ const styles = StyleSheet.create({
     height: 120,
     textAlignVertical: 'top',
   },
-  mapPlaceholder: {
-    height: 200,
-    backgroundColor: '#F0F0F0',
+  mapWrapper: {
+    height: 250,
+    width: '100%',
     borderRadius: 10,
     marginTop: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mapPlaceholderText: {
-    color: '#A0A0A0',
-    fontSize: 14,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  calendarModalContainer: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 20,
-    width: '90%',
-  },
-  timeInputContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  amPmContainer: {
-    flexDirection: 'row',
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E5E5E5',
-    borderRadius: 10,
-    backgroundColor: '#F8F7F5',
   },
-  amPmButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    justifyContent: 'center',
-  },
-  amPmButtonActive: {
-    backgroundColor: '#9B7E5C',
-    borderRadius: 9,
-  },
-  amPmButtonText: {
-    fontSize: 16,
-    color: '#8B7355',
-    fontWeight: '600',
-  },
-  amPmButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  timeInput: {
+  map: {
     flex: 1,
-    textAlign: 'center',
+  },
+  locationInfo: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#F8F7F5',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#666',
   },
 });
 
