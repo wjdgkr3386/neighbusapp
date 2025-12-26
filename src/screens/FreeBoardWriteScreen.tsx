@@ -1,5 +1,4 @@
-// src/screens/FreeBoardWriteScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,32 +8,52 @@ import {
   ScrollView,
   Modal,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import theme from '../styles/theme';
+import { useUser } from '../context/UserContext';
+import { BASE_URL } from '../config';
 
 type Props = RootStackScreenProps<'FreeBoardWrite'>;
 
-const CATEGORIES = ['자유', '질문', '정보', '후기'];
-
-const FONT_FAMILIES = ['기본서체', '고딕', '명조', '궁서'];
-const FONT_SIZES = ['12', '14', '16', '18', '20', '24', '28', '32'];
+type Club = {
+  id: number;
+  clubName: string;
+};
 
 const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const { token } = useUser();
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
+  const [selectedClubName, setSelectedClubName] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [showFontFamilyModal, setShowFontFamilyModal] = useState(false);
-  const [showFontSizeModal, setShowFontSizeModal] = useState(false);
-  const [selectedFontFamily, setSelectedFontFamily] = useState('기본서체');
-  const [selectedFontSize, setSelectedFontSize] = useState('18');
-  const [textAlign, setTextAlign] = useState<'left' | 'center' | 'right'>('left');
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
-  const [isUnderline, setIsUnderline] = useState(false);
-  const [isStrikethrough, setIsStrikethrough] = useState(false);
+  const [showClubModal, setShowClubModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // 내 동아리 목록 가져오기
+  useEffect(() => {
+    const fetchMyClubs = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/api/mobile/club/my`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+           // 데이터 구조에 따라 수정 필요 (예: data.clubList 등)
+           // 여기서는 data.data가 Club 리스트라고 가정하거나, data.clubList 확인
+           setClubs(data.data);
+        } else if (data.clubList) {
+            setClubs(data.clubList);
+        }
+      } catch (error) {
+        console.error('Failed to fetch clubs:', error);
+      }
+    };
+    fetchMyClubs();
+  }, [token]);
 
   const handleClose = () => {
     if (title || content) {
@@ -43,11 +62,7 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
         '작성중인 내용이 있습니다. 정말 취소하시겠습니까?',
         [
           { text: '계속 작성', style: 'cancel' },
-          {
-            text: '취소',
-            style: 'destructive',
-            onPress: () => navigation.goBack(),
-          },
+          { text: '취소', style: 'destructive', onPress: () => navigation.goBack() },
         ]
       );
     } else {
@@ -55,9 +70,9 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const handleSave = () => {
-    if (!selectedCategory) {
-      Alert.alert('알림', '카테고리 선택을 해주세요.');
+  const handleSave = async () => {
+    if (!selectedClubId) {
+      Alert.alert('알림', '동아리를 선택해주세요.');
       return;
     }
     if (!title.trim()) {
@@ -69,35 +84,36 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    Alert.alert('알림', '게시글이 등록되었습니다.', [
-      {
-        text: '확인',
-        onPress: () => navigation.goBack(),
-      },
-    ]);
-  };
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/freeboard/write`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          clubId: selectedClubId,
+          title: title,
+          content: content,
+        }),
+      });
 
-  const getTextStyle = () => {
-    const style: any = {
-      fontSize: parseInt(selectedFontSize),
-      textAlign: textAlign,
-    };
+      const data = await response.json();
 
-    if (isBold) {
-      style.fontWeight = 'bold';
+      if (data.success) {
+        Alert.alert('알림', '게시글이 등록되었습니다.', [
+          { text: '확인', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert('등록 실패', data.message || '게시글 등록 중 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Write post error:', error);
+      Alert.alert('오류', '서버 통신 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
-    if (isItalic) {
-      style.fontStyle = 'italic';
-    }
-    if (isUnderline && isStrikethrough) {
-      style.textDecorationLine = 'underline line-through';
-    } else if (isUnderline) {
-      style.textDecorationLine = 'underline';
-    } else if (isStrikethrough) {
-      style.textDecorationLine = 'line-through';
-    }
-
-    return style;
   };
 
   return (
@@ -106,22 +122,27 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
         <TouchableOpacity onPress={handleClose}>
           <Text style={styles.headerButtonText}>✕</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>자유게시판 글쓰기</Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text style={styles.headerSubmitText}>등록</Text>
+        <Text style={styles.headerTitle}>게시글 작성</Text>
+        <TouchableOpacity onPress={handleSave} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+          ) : (
+            <Text style={styles.headerSubmitText}>등록</Text>
+          )}
         </TouchableOpacity>
       </View>
+      
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* 카테고리 선택 및 제목 */}
+        {/* 상단 입력 그룹 */}
         <View style={styles.topSection}>
           {/* 동아리 선택 */}
           <TouchableOpacity
             style={styles.categoryButton}
-            onPress={() => setShowCategoryModal(true)}
+            onPress={() => setShowClubModal(true)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.categoryButtonText, !selectedCategory && styles.placeholder]}>
-              {selectedCategory || '카테고리 선택'}
+            <Text style={[styles.categoryButtonText, !selectedClubId && styles.placeholder]}>
+              {selectedClubName || '동아리 선택'}
             </Text>
             <Text style={styles.dropdownIcon}>▼</Text>
           </TouchableOpacity>
@@ -136,91 +157,9 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
           />
         </View>
 
-        {/* 텍스트 편집 도구바 */}
-        <View style={styles.toolbar}>
-          {/* 첫 번째 줄: 이미지, 폰트 선택 */}
-          <View style={styles.toolRowSpaced}>
-            <TouchableOpacity
-              style={styles.toolButtonLarge}
-              onPress={() => setShowFontFamilyModal(true)}
-            >
-              <Text style={styles.toolText}>{selectedFontFamily}</Text>
-              <Text style={styles.toolDropdown}>▼</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.toolButtonLarge}
-              onPress={() => setShowFontSizeModal(true)}
-            >
-              <Text style={styles.toolText}>{selectedFontSize}</Text>
-              <Text style={styles.toolDropdown}>▼</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.toolbarDivider} />
-
-          {/* 두 번째 줄: 텍스트 스타일 */}
-          <View style={styles.toolRowSpaced}>
-            <TouchableOpacity
-              style={[styles.toolButtonStyle, isBold && styles.toolButtonActive]}
-              onPress={() => setIsBold(!isBold)}
-            >
-              <Text style={[styles.toolTextBold, isBold && styles.toolTextActive]}>B</Text>
-              <Text style={styles.toolLabel}>굵게</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.toolButtonStyle, isItalic && styles.toolButtonActive]}
-              onPress={() => setIsItalic(!isItalic)}
-            >
-              <Text style={[styles.toolTextItalic, isItalic && styles.toolTextActive]}>I</Text>
-              <Text style={styles.toolLabel}>기울임</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.toolButtonStyle, isUnderline && styles.toolButtonActive]}
-              onPress={() => setIsUnderline(!isUnderline)}
-            >
-              <Text style={[styles.toolTextUnderline, isUnderline && styles.toolTextActive]}>U</Text>
-              <Text style={styles.toolLabel}>밑줄</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.toolButtonStyle, isStrikethrough && styles.toolButtonActive]}
-              onPress={() => setIsStrikethrough(!isStrikethrough)}
-            >
-              <Text style={[styles.toolTextStrike, isStrikethrough && styles.toolTextActive]}>S</Text>
-              <Text style={styles.toolLabel}>취소선</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.toolbarDivider} />
-
-          {/* 세 번째 줄: 정렬 */}
-          <View style={styles.toolRowAlign}>
-            <Text style={styles.toolSectionLabel}>정렬</Text>
-            <View style={styles.alignButtonGroup}>
-              <TouchableOpacity
-                style={[styles.alignButton, textAlign === 'left' && styles.alignButtonActive]}
-                onPress={() => setTextAlign('left')}
-              >
-                <Text style={styles.alignIcon}>☰</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.alignButton, textAlign === 'center' && styles.alignButtonActive]}
-                onPress={() => setTextAlign('center')}
-              >
-                <Text style={styles.alignIcon}>≡</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.alignButton, textAlign === 'right' && styles.alignButtonActive]}
-                onPress={() => setTextAlign('right')}
-              >
-                <Text style={styles.alignIcon}>☰</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
         {/* 내용 입력 */}
         <TextInput
-          style={[styles.contentInput, getTextStyle()]}
+          style={styles.contentInput}
           placeholder="내용을 입력해주세요."
           placeholderTextColor={theme.colors.textLight}
           value={content}
@@ -230,125 +169,50 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
         />
       </ScrollView>
 
-      {/* 카테고리 선택 모달 */}
+      {/* 동아리 선택 모달 */}
       <Modal
-        visible={showCategoryModal}
+        visible={showClubModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setShowCategoryModal(false)}
+        onRequestClose={() => setShowClubModal(false)}
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setShowCategoryModal(false)}
+          onPress={() => setShowClubModal(false)}
         >
           <View style={styles.categoryModalContainer}>
-            <Text style={styles.categoryModalTitle}>카테고리 선택</Text>
-            {CATEGORIES.map((category) => (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  styles.categoryOption,
-                  selectedCategory === category && styles.categoryOptionActive,
-                ]}
-                onPress={() => {
-                  setSelectedCategory(category);
-                  setShowCategoryModal(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text
+            <Text style={styles.categoryModalTitle}>동아리 선택</Text>
+            {clubs.length > 0 ? (
+              clubs.map((club) => (
+                <TouchableOpacity
+                  key={club.id}
                   style={[
-                    styles.categoryOptionText,
-                    selectedCategory === category && styles.categoryOptionTextActive,
+                    styles.categoryOption,
+                    selectedClubId === club.id && styles.categoryOptionActive,
                   ]}
+                  onPress={() => {
+                    setSelectedClubId(club.id);
+                    setSelectedClubName(club.clubName);
+                    setShowClubModal(false);
+                  }}
+                  activeOpacity={0.7}
                 >
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* 폰트 패밀리 선택 모달 */}
-      <Modal
-        visible={showFontFamilyModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFontFamilyModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowFontFamilyModal(false)}
-        >
-          <View style={styles.categoryModalContainer}>
-            <Text style={styles.categoryModalTitle}>서체 선택</Text>
-            {FONT_FAMILIES.map((font) => (
-              <TouchableOpacity
-                key={font}
-                style={[
-                  styles.categoryOption,
-                  selectedFontFamily === font && styles.categoryOptionActive,
-                ]}
-                onPress={() => {
-                  setSelectedFontFamily(font);
-                  setShowFontFamilyModal(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.categoryOptionText,
-                    selectedFontFamily === font && styles.categoryOptionTextActive,
-                  ]}
-                >
-                  {font}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* 폰트 사이즈 선택 모달 */}
-      <Modal
-        visible={showFontSizeModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFontSizeModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowFontSizeModal(false)}
-        >
-          <View style={styles.categoryModalContainer}>
-            <Text style={styles.categoryModalTitle}>글꼴 크기 선택</Text>
-            {FONT_SIZES.map((size) => (
-              <TouchableOpacity
-                key={size}
-                style={[
-                  styles.categoryOption,
-                  selectedFontSize === size && styles.categoryOptionActive,
-                ]}
-                onPress={() => {
-                  setSelectedFontSize(size);
-                  setShowFontSizeModal(false);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.categoryOptionText,
-                    selectedFontSize === size && styles.categoryOptionTextActive,
-                  ]}
-                >
-                  {size}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.categoryOptionText,
+                      selectedClubId === club.id && styles.categoryOptionTextActive,
+                    ]}
+                  >
+                    {club.clubName}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <Text style={{ color: theme.colors.textSecondary }}>가입한 동아리가 없습니다.</Text>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
       </Modal>
