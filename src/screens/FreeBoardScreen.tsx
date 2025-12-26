@@ -157,6 +157,14 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
         )}
       </View>
 
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleWritePost}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
+
       <BottomNavBar currentScreen="Freeboard" />
 
       <SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
@@ -288,5 +296,31 @@ const styles = StyleSheet.create({
   separator: {
     height: 8,
     backgroundColor: '#FFF8F0',
+  },
+  fab: {
+    position: 'absolute',
+    right: 25,
+    bottom: 100,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+      },
+      android: { elevation: 8 },
+    }),
+  },
+  fabIcon: {
+    fontSize: 36,
+    color: '#FFFFFF',
+    fontWeight: '300',
+    marginTop: -4,
   },
 });
