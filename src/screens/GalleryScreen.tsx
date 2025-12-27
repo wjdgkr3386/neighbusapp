@@ -13,6 +13,7 @@ import {
   Button,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Picker } from '@react-native-picker/picker';
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
@@ -30,12 +31,19 @@ type Post = {
   height: number;
 };
 
+type Club = {
+  id: number;
+  clubName: string;
+};
+
 const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [myClubs, setMyClubs] = useState<Club[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<number>(0);
   const { token } = useUser();
 
   const fetchGalleryData = useCallback(() => {
@@ -48,8 +56,9 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    const keywordParam = searchQuery.trim() ? `?keyword=${encodeURIComponent(searchQuery.trim())}` : '';
-    const url = `${BASE_URL}/api/mobile/gallery/getGallery${keywordParam}`;
+    const keywordParam = searchQuery.trim() ? `&keyword=${encodeURIComponent(searchQuery.trim())}` : '';
+    const clubParam = `&clubId=${selectedClubId}`;
+    const url = `${BASE_URL}/api/mobile/gallery/getGallery?${keywordParam}${clubParam}`;
 
     fetch(url, {
       headers: {
@@ -60,21 +69,24 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
         if (!response.ok) {
           throw new Error('데이터를 불러오는데 실패했습니다. 다시 시도해주세요.');
         }
-        return response.text(); // Get raw text first
+        return response.text();
       })
       .then(text => {
-        console.log("Raw server response:", text); // Log the raw response
+        console.log("Raw server response:", text);
         try {
-          const data = JSON.parse(text); // Manually parse the text
+          const data = JSON.parse(text);
           if (data.status === 'success' && data.galleryMapList) {
             const fetchedPosts: Post[] = data.galleryMapList.map((item: any) => ({
               id: item.ID.toString(),
               title: (item.TITLE || '').replace(/&nbsp;/g, ' '),
               author: item.WRITER || 'Unknown',
-              imageUrl: (item.IMAGES && item.IMAGES.length > 0 && item.IMAGES[0].IMG) || `https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800`, // Placeholder
-              height: Math.floor(Math.random() * 100) + 250, // Random height for masonry
+              imageUrl: (item.IMAGES && item.IMAGES.length > 0 && item.IMAGES[0].IMG) || `https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800`,
+              height: Math.floor(Math.random() * 100) + 250,
             }));
             setPosts(fetchedPosts);
+            if (Array.isArray(data.myClubList)) {
+              setMyClubs(data.myClubList);
+            }
           } else {
             throw new Error('갤러리 데이터를 가져오는데 실패했습니다.');
           }
@@ -88,9 +100,8 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       })
       .finally(() => {
         setLoading(false);
-        
       });
-  }, [token, searchQuery]);
+  }, [token, searchQuery, selectedClubId]);
 
   useEffect(() => {
     fetchGalleryData();
@@ -159,6 +170,19 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>갤러리</Text>
+        <View style={styles.headerPickerWrapper}>
+          <Picker
+            selectedValue={selectedClubId}
+            onValueChange={(itemValue) => setSelectedClubId(itemValue)}
+            style={styles.picker}
+            dropdownIconColor={theme.colors.primary}
+          >
+            <Picker.Item label="전체 동아리" value={0} />
+            {myClubs.map((club) => (
+              <Picker.Item key={club.id} label={club.clubName} value={club.id} />
+            ))}
+          </Picker>
+        </View>
       </View>
 
       {/* Controls Section */}
@@ -194,6 +218,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8F0',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
@@ -202,6 +229,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
+    color: theme.colors.textPrimary,
+  },
+  headerPickerWrapper: {
+    backgroundColor: theme.colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    width: 160,
+    height: 55,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: Platform.OS === 'ios' ? 150 : 55,
+    width: '100%',
     color: theme.colors.textPrimary,
   },
   controlsContainer: {

@@ -13,6 +13,7 @@ import {
   Button,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Picker } from '@react-native-picker/picker';
 import type { RootStackScreenProps } from '../../App';
 import { BASE_URL } from '../config';
 import BottomNavBar from '../components/BottomNavBar';
@@ -30,8 +31,15 @@ type Club = {
   memberCount: number;
 };
 
+type Category = {
+  id: number;
+  name: string;
+};
+
 const HomeScreen: React.FC<Props> = ({ navigation }) => {
   const [clubs, setClubs] = useState<Club[]>([]);
+  const [categoryList, setCategoryList] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,8 +70,8 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    // Use searchQuery in the API call
-    const url = `${BASE_URL}/api/mobile/club/getClubs?category=0&keyword=${searchQuery}`;
+    // Use selectedCategory and searchQuery in the API call
+    const url = `${BASE_URL}/api/mobile/club/getClubs?category=${selectedCategory}&keyword=${searchQuery}`;
 
     fetch(url, {
       method: 'GET',
@@ -81,7 +89,7 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
     .then((data) => {
       if (data.clubs) {
         const mappedClubs: Club[] = data.clubs.map((club: any) => ({
-          id: club.id?.toString(), // Use the correct 'id' field
+          id: club.id?.toString(), 
           clubName: club.clubName || '이름 없음',
           provinceName: club.provinceName || '지역 정보 없음',
           clubImg: club.clubImg || 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800',
@@ -95,13 +103,17 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       } else {
         setClubs([]);
       }
+
+      if (data.categoryList && Array.isArray(data.categoryList)) {
+        setCategoryList(data.categoryList);
+      }
     })
     .catch(err => {
       setError(err.message || '알 수 없는 오류가 발생했습니다.');
       console.error(err);
     })
     .finally(() => setLoading(false));
-  }, [token, searchQuery]);
+  }, [token, searchQuery, selectedCategory]);
 
   useEffect(() => {
     fetchClubs();
@@ -168,6 +180,19 @@ const HomeScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.container} {...panResponder.panHandlers}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>동아리</Text>
+          <View style={styles.headerPickerWrapper}>
+            <Picker
+              selectedValue={selectedCategory}
+              onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+              style={styles.picker}
+              dropdownIconColor="#A67C52"
+            >
+              <Picker.Item label="전체 카테고리" value={0} />
+              {categoryList.map((cat) => (
+                <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
+              ))}
+            </Picker>
+          </View>
         </View>
 
         <View style={styles.controlsContainer}>
@@ -203,6 +228,9 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FFF8F0' },
   container: { flex: 1 },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
@@ -210,6 +238,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
+    color: '#5D4037',
+  },
+  headerPickerWrapper: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E8D7C3',
+    width: 160,
+    height: 55,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: Platform.OS === 'ios' ? 150 : 55,
+    width: '100%',
     color: '#5D4037',
   },
   controlsContainer: {
