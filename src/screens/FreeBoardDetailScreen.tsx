@@ -323,6 +323,7 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             <RenderHtml
               contentWidth={width - 40}
               source={{ html: postData.content }}
+              ignoredStyles={['width', 'height', 'lineHeight']} // 인라인 스타일로 인한 짤림 방지
               tagsStyles={{
                 body: {
                   fontSize: 16,
@@ -330,7 +331,6 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                   color: theme.colors.textSecondary,
                 },
                 img: {
-                  maxWidth: '100%',
                   borderRadius: 8,
                   marginVertical: 10,
                 },
