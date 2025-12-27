@@ -9,6 +9,8 @@ npm install react-native-vector-icons
 npm install @react-native-async-storage/async-storage
 npm install react-native-maps
 npm install react-native-render-html react-native-webview
+npm install @stomp/stompjs text-encoding
+npm install --save-dev @types/text-encoding
 
 npx react-native start
 npx react-native run-android
