@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import type { RootStackScreenProps } from '../../App';
 import { BASE_URL } from '../config';
 import { useUser } from '../context/UserContext';
@@ -174,6 +175,34 @@ const MeetingDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             </View>
           </View>
 
+          {recruitment.latitude && recruitment.longitude && (
+            <View style={styles.mapWrapper}>
+              <MapView
+                provider={PROVIDER_GOOGLE}
+                style={styles.map}
+                initialRegion={{
+                  latitude: recruitment.latitude,
+                  longitude: recruitment.longitude,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
+                }}
+                scrollEnabled={false} // 상세 화면에서는 지도가 고정된 것이 조작하기 편함
+                zoomEnabled={false}
+                pitchEnabled={false}
+                rotateEnabled={false}
+              >
+                <Marker
+                  coordinate={{
+                    latitude: recruitment.latitude,
+                    longitude: recruitment.longitude,
+                  }}
+                  title={recruitment.title}
+                  description={recruitment.address}
+                />
+              </MapView>
+            </View>
+          )}
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>모임 설명</Text>
             <Text style={styles.description}>{recruitment.content}</Text>
@@ -328,6 +357,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#5C4A3A',
+  },
+  mapWrapper: {
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+  },
+  map: {
+    flex: 1,
   },
   section: {
     backgroundColor: '#FFFFFF',
