@@ -308,8 +308,6 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       );
     }
 
-    const firstImageUrl = galleryPost.IMAGES[0]?.IMG || 'https://via.placeholder.com/400/D2B48C/FFFFFF?text=No+Image';
-
     return (
       <ScrollView style={styles.container}>
         {/* Post Header */}
@@ -326,10 +324,14 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           <Text style={styles.postTitle}>{galleryPost.TITLE}</Text>
         </View>
 
-        {/* Image */}
-        {firstImageUrl && (
-          <Image source={{ uri: firstImageUrl }} style={styles.postImage} />
-        )}
+        {/* Images */}
+        {galleryPost.IMAGES.map((imgObj) => (
+          <Image 
+            key={imgObj.ID} 
+            source={{ uri: imgObj.IMG }} 
+            style={styles.postImage} 
+          />
+        ))}
 
         {/* Post Content */}
         <View style={styles.contentWrapper}>
@@ -476,8 +478,10 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 300,
-    resizeMode: 'cover',
+    height: 450, // 높이를 키워서 더 크게 보이게 함
+    resizeMode: 'contain', // 이미지가 잘리지 않게 조정
+    backgroundColor: '#F0F0F0', // 이미지가 비는 공간을 채울 배경색
+    marginBottom: 10,
   },
   postContent: {
     fontSize: 16,

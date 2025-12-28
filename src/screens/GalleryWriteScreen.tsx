@@ -116,10 +116,6 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
         };
       });
 
-      console.log('=== Upload Start ===');
-      console.log('URL:', `${BASE_URL}/api/mobile/gallery/insertGallery`);
-      console.log('Images count:', uploadImages.length);
-
       const response = await ReactNativeBlobUtil.fetch(
         'POST',
         `${BASE_URL}/api/mobile/gallery/insertGallery`,
@@ -135,11 +131,7 @@ const GalleryWriteScreen: React.FC<Props> = ({ navigation }) => {
         ]
       );
 
-      console.log('=== Response Info ===');
-      console.log('Status:', response.respInfo.status);
-      
       const responseText = await response.text();
-      console.log('Response Text:', responseText);
 
       let responseData;
       try {
