@@ -63,6 +63,7 @@ type FriendRequest = {
   id: string; 
   uuid: string; 
   name: string; 
+  nickname: string;
   image: string; 
   status: string; 
   location: string; 
@@ -113,14 +114,17 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
           })));
         }
         if (Array.isArray(data.requests)) {
-          setFriendRequests(data.requests.map((r: any) => ({
+          console.log('Friend Requests Data:', data.requests);
+          const mappedRequests: FriendRequest[] = data.requests.map((r: any) => ({
             id: r.id.toString(),
-            uuid: r.user_uuid || '',
-            name: r.nickname || r.name || '알 수 없음',
-            image: r.image,
+            uuid: r.user_uuid || r.userUuid || '',
+            name: r.name || '',
+            nickname: r.nickname || r.name || '알 수 없는 사용자',
+            image: r.image ? (r.image.startsWith('http') ? r.image : `${BASE_URL}${r.image}`) : '', 
             status: '', 
             location: r.city || r.province || '',
-          })));
+          }));
+          setFriendRequests(mappedRequests);
         }
       }
     } catch (error) {
@@ -161,7 +165,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               message: receivedMsg.message,
               time: receivedMsg.createdAt 
                 ? new Date(receivedMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-                : new Date().toLocaleTimeString(),
+                : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
               isMe: receivedMsg.sender === user?.username,
               senderNickname: receivedMsg.senderNickname,
             };
@@ -439,71 +443,49 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       {selectedChat ? renderChatDetail() : (
         <View style={styles.flexOne} {...panResponder.panHandlers}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>채팅</Text>
+            <Text style={styles.headerTitle}>친구</Text>
           </View>
           
-          <View style={styles.tabContainer}>
+          <View style={styles.friendButtonContainer}>
             <TouchableOpacity 
-              style={[styles.tab, activeTab === 'friends' && styles.activeTab]} 
-              onPress={() => setActiveTab('friends')}
+              style={styles.friendActionButton} 
+              onPress={() => setShowAddFriendModal(true)}
             >
-              <Text style={[styles.tabText, activeTab === 'friends' && styles.activeTabText]}>친구</Text>
+              <Text style={styles.friendActionText}>➕ 친구 추가</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.tab, activeTab === 'chats' && styles.activeTab]} 
-              onPress={() => setActiveTab('chats')}
+              style={styles.friendActionButton} 
+              onPress={() => setShowRequestsModal(true)}
             >
-              <Text style={[styles.tabText, activeTab === 'chats' && styles.activeTabText]}>대화</Text>
+              <Text style={styles.friendActionText}>📬 받은 요청 ({friendRequests.length})</Text>
             </TouchableOpacity>
           </View>
           
-          {activeTab === 'friends' ? (
-            <>
-              <View style={styles.friendButtonContainer}>
-                <TouchableOpacity 
-                  style={styles.friendActionButton} 
-                  onPress={() => setShowAddFriendModal(true)}
-                >
-                  <Text>➕ 친구 추가</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.friendActionButton} 
-                  onPress={() => setShowRequestsModal(true)}
-                >
-                  <Text>📬 요청 ({friendRequests.length})</Text>
-                </TouchableOpacity>
-              </View>
-              
-              {loading ? (
-                <ActivityIndicator size="large" color={theme.colors.primary} />
-              ) : (
-                <FlatList 
-                  data={friends} 
-                  renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.friendItem} onPress={() => setSelectedFriend(item)}>
-                      <Image 
-                        source={{ uri: item.image || `https://i.pravatar.cc/150?u=${item.uuid}` }} 
-                        style={styles.avatar} 
-                      />
-                      <View style={styles.friendInfo}>
-                        <Text style={styles.friendName}>{item.name}</Text>
-                        <Text style={styles.friendStatus}>{item.status}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  )} 
-                  keyExtractor={(item) => item.id} 
-                />
-              )}
-            </>
+          {loading ? (
+            <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 20 }} />
           ) : (
             <FlatList 
-              data={[]} 
-              renderItem={() => null} 
+              data={friends} 
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.friendItem} onPress={() => setSelectedFriend(item)}>
+                  <Image 
+                    source={{ uri: item.image || `https://i.pravatar.cc/150?u=${item.uuid}` }} 
+                    style={styles.avatar} 
+                  />
+                  <View style={styles.friendInfo}>
+                    <Text style={styles.friendName}>{item.name}</Text>
+                    <Text style={styles.friendStatus}>{item.status}</Text>
+                  </View>
+                </TouchableOpacity>
+              )} 
+              keyExtractor={(item) => item.id}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              contentContainerStyle={styles.listContent}
               ListEmptyComponent={
-                <Text style={{ textAlign: 'center', marginTop: 20 }}>
-                  대화 목록이 없습니다.
+                <Text style={{ textAlign: 'center', marginTop: 40, color: '#888' }}>
+                  등록된 친구가 없습니다.
                 </Text>
-              } 
+              }
             />
           )}
         </View>
@@ -543,55 +525,141 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
       <SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
       
       {/* 친구 추가 모달 */}
-      <Modal transparent visible={showAddFriendModal} animationType="fade">
-        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowAddFriendModal(false)}>
-          <View style={styles.profileModalContainer}>
-            <Text style={styles.profileName}>친구 추가</Text>
-            <TextInput 
-              style={[styles.messageInput, {width: '100%', marginBottom: 20, borderWidth: 1, borderColor: '#ddd'}]} 
-              placeholder="친구 UUID 입력"
-              value={friendUuid}
-              onChangeText={setFriendUuid}
-            />
-            <TouchableOpacity style={styles.profileButton} onPress={handleAddFriend}>
-              <Text style={{color: '#fff'}}>요청 보내기</Text>
+      <Modal 
+        transparent 
+        visible={showAddFriendModal} 
+        animationType="slide"
+        // [추가] 안드로이드 물리 뒤로 가기 버튼 대응
+        onRequestClose={() => setShowAddFriendModal(false)}
+      >
+        {/* [추가] 배경 터치 시 닫히게 하기 위해 전체 영역을 TouchableOpacity로 감쌉니다 */}
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowAddFriendModal(false)}
+        >
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={{ width: '100%' }}
+          >
+            {/* [중요] 실제 모달 컨텐츠 영역 클릭 시에는 닫히지 않도록 전파를 막습니다 */}
+            <TouchableOpacity 
+              activeOpacity={1} 
+              onPress={(e) => e.stopPropagation()} 
+              style={[styles.profileModalContainer, { alignItems: 'stretch' }]}
+            >
+              <Text style={[styles.profileName, { textAlign: 'center', marginBottom: 25 }]}>
+                친구 추가
+              </Text>
+              
+              <TextInput 
+                style={{
+                  width: '100%',
+                  height: 55,
+                  borderWidth: 2,
+                  borderColor: theme.colors.primary,
+                  borderRadius: 12,
+                  paddingHorizontal: 20,
+                  fontSize: 16,
+                  color: '#000',
+                  backgroundColor: '#fff',
+                  marginBottom: 20
+                }} 
+                placeholder="친구 UUID 코드를 입력하세요"
+                placeholderTextColor="#999"
+                value={friendUuid}
+                onChangeText={setFriendUuid}
+                autoCapitalize="none"
+              />
+              
+              <TouchableOpacity 
+                style={{
+                  width: '100%',
+                  height: 55,
+                  backgroundColor: theme.colors.primary,
+                  borderRadius: 12,
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }} 
+                onPress={handleAddFriend}
+              >
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+                  요청 보내기
+                </Text>
+              </TouchableOpacity>
             </TouchableOpacity>
-          </View>
+          </KeyboardAvoidingView>
         </TouchableOpacity>
       </Modal>
 
       {/* 친구 요청 목록 모달 */}
-      <Modal transparent visible={showRequestsModal} animationType="fade">
-        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowRequestsModal(false)}>
-          <View style={[styles.profileModalContainer, { maxHeight: '60%' }]}>
-            <Text style={styles.profileName}>받은 요청</Text>
+      <Modal 
+        transparent 
+        visible={showRequestsModal} 
+        animationType="slide"
+        // 안드로이드 물리 뒤로 가기 대응
+        onRequestClose={() => setShowRequestsModal(false)}
+      >
+        {/* 배경 터치 시 닫기 */}
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setShowRequestsModal(false)}
+        >
+          {/* 컨텐츠 영역 클릭 시에는 안 닫히게 전파 방지 */}
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={(e) => e.stopPropagation()} 
+            style={[styles.profileModalContainer, { maxHeight: '70%', alignItems: 'stretch' }]}
+          >
+            <Text style={[styles.profileName, { textAlign: 'center' }]}>받은 요청</Text>
+            
             <FlatList 
               data={friendRequests}
               keyExtractor={(item) => item.id}
               renderItem={({item}) => (
-                <View style={{flexDirection: 'row', alignItems: 'center', marginBottom: 15, width: '100%'}}>
+                <View style={{
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  marginBottom: 15, 
+                  width: '100%',
+                  paddingHorizontal: 5
+                }}>
                   <Image 
-                    source={{ uri: item.image || 'https://i.pravatar.cc/150' }} 
-                    style={{width: 40, height: 40, borderRadius: 20, marginRight: 10}} 
+                    source={{ uri: item.image || `https://i.pravatar.cc/150?u=${item.uuid}` }} 
+                    style={{width: 45, height: 45, borderRadius: 22.5, marginRight: 12}} 
                   />
-                  <Text style={{flex: 1, fontWeight: 'bold'}}>{item.name}</Text>
-                  <TouchableOpacity 
-                    onPress={() => handleAcceptRequest(item)} 
-                    style={{backgroundColor: theme.colors.primary, padding: 8, borderRadius: 5, marginRight: 5}}
-                  >
-                    <Text style={{color: '#fff', fontSize: 12}}>수락</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={() => handleRejectRequest(item)} 
-                    style={{backgroundColor: '#ccc', padding: 8, borderRadius: 5}}
-                  >
-                    <Text style={{color: '#fff', fontSize: 12}}>거절</Text>
-                  </TouchableOpacity>
+                  <View style={{flex: 1, justifyContent: 'center', marginRight: 10}}>
+                    <Text 
+                      style={{fontSize: 16, fontWeight: 'bold', color: '#5C4A3A'}}
+                      numberOfLines={1}
+                    >
+                      {item.nickname || item.name || '알 수 없는 사용자'}
+                    </Text>
+                  </View>
+                  <View style={{flexDirection: 'row', gap: 5}}>
+                    <TouchableOpacity 
+                      onPress={() => handleAcceptRequest(item)} 
+                      style={{backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6}}
+                    >
+                      <Text style={{color: '#fff', fontSize: 12, fontWeight: 'bold'}}>수락</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      onPress={() => handleRejectRequest(item)} 
+                      style={{backgroundColor: '#E5E5E5', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6}}
+                    >
+                      <Text style={{color: '#5C4A3A', fontSize: 12, fontWeight: 'bold'}}>거절</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
-              ListEmptyComponent={<Text style={{color: '#999'}}>새로운 요청이 없습니다.</Text>}
+              ListEmptyComponent={
+                <Text style={{textAlign: 'center', color: '#999', marginTop: 20}}>
+                  새로운 요청이 없습니다.
+                </Text>
+              }
             />
-          </View>
+          </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
 
@@ -613,6 +681,10 @@ const styles = StyleSheet.create({
   activeTabText: { color: '#000', fontWeight: '700' },
   friendButtonContainer: { flexDirection: 'row', padding: 10, gap: 10 },
   friendActionButton: { flex: 1, padding: 12, borderWidth: 1, borderColor: theme.colors.primary, borderRadius: 8, alignItems: 'center' },
+  friendActionText: { fontSize: 14, fontWeight: '600', color: theme.colors.primary },
+  friendActionIcon: { fontSize: 16, marginRight: 6, color: theme.colors.primary },
+  listContent: { paddingBottom: 100, backgroundColor: '#FFF8F0' },
+  separator: { height: 1, backgroundColor: '#eee' },
   avatar: { width: 50, height: 50, borderRadius: 25 },
   friendItem: { flexDirection: 'row', padding: 15, alignItems: 'center' },
   friendInfo: { marginLeft: 15 },
@@ -637,7 +709,14 @@ const styles = StyleSheet.create({
   sendButton: { marginLeft: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: theme.colors.primary, justifyContent: 'center', alignItems: 'center' },
   sendButtonText: { color: '#fff', fontSize: 18 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  profileModalContainer: { backgroundColor: '#fff', padding: 30, borderTopLeftRadius: 20, borderTopRightRadius: 20, alignItems: 'center', width: '100%' },
+  profileModalContainer: { 
+    backgroundColor: '#fff', 
+    padding: 30, 
+    paddingBottom: 40,             // 하단 여유 공간
+    borderTopLeftRadius: 25, 
+    borderTopRightRadius: 25, 
+    alignItems: 'stretch',         // ★ center에서 stretch로 변경 (매우 중요)
+  },
   profileAvatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 15 },
   profileName: { fontSize: 20, fontWeight: '700', marginBottom: 20 },
   profileActions: { flexDirection: 'row', gap: 10, width: '100%' },
@@ -653,5 +732,6 @@ const styles = StyleSheet.create({
     marginLeft: 50,
     marginBottom: 4,
     fontWeight: '600',
+    fontFamily: Platform.OS === 'android' ? 'sans-serif' : 'System',
   },
 });
