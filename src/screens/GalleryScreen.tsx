@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
@@ -72,7 +73,6 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
         return response.text();
       })
       .then(text => {
-        console.log("Raw server response:", text);
         try {
           const data = JSON.parse(text);
           if (data.status === 'success' && data.galleryMapList) {
@@ -129,7 +129,10 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       <ImageBackground source={{ uri: item.imageUrl }} style={styles.imageBackground}>
         <View style={styles.textOverlay}>
           <Text style={styles.galleryItemTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.galleryItemAuthor}>{item.author}</Text>
+          <View style={styles.authorContainer}>
+            <Icon name="account" size={12} color="rgba(255, 255, 255, 0.9)" style={styles.authorIcon} />
+            <Text style={styles.galleryItemAuthor}>{item.author}</Text>
+          </View>
         </View>
       </ImageBackground>
     </TouchableOpacity>
@@ -203,6 +206,14 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
 
       {renderContent()}
 
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleWritePost}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
+
       <BottomNavBar currentScreen="Gallery" />
 
 <SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
@@ -275,26 +286,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     color: theme.colors.textPrimary,
   },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.borderColor,
-  },
-  sortButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
-  sortButtonIcon: {
-    fontSize: 10,
-    marginLeft: 6,
-    color: theme.colors.textSecondary,
-  },
   galleryList: {
     padding: 8,
     paddingBottom: 100,
@@ -315,21 +306,29 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   textOverlay: {
-    padding: 12,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 14,
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   galleryItemTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     color: theme.colors.white,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+    marginBottom: 4,
+  },
+  authorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  authorIcon: {
+    marginRight: 4,
   },
   galleryItemAuthor: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 2,
+    fontWeight: '500',
   },
   
   fab: {

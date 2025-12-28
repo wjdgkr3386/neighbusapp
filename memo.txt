@@ -11,6 +11,7 @@ npm install react-native-maps
 npm install react-native-render-html react-native-webview
 npm install @stomp/stompjs text-encoding
 npm install --save-dev @types/text-encoding
+npm install react-native-blob-util
 
 npx react-native start
 npx react-native run-android
