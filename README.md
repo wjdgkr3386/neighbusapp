@@ -19,20 +19,12 @@
 [![React Navigation](https://img.shields.io/badge/React_Navigation-6B52AE?style=for-the-badge&logo=react&logoColor=white)](https://reactnavigation.org/)
 [![Stomp.js](https://img.shields.io/badge/Stomp.js-F05033?style=for-the-badge&logo=git&logoColor=white)](https://stomp-js.github.io/)
 
-<br/>
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  "기술로 연결하고, 만남으로 완성하는 지역 커뮤니티의 미래"        │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-<br/>
+<br/><br/>
 
 [📖 프로젝트 개요](#-프로젝트-개요) • 
 [💡 핵심 가치](#-핵심-가치) •
 [🎯 기술적 도전](#-기술적-도전과-해결) • 
-[🏗️ 아키텍처](#️-앱-아키텍처) • 
+[🏗️ 아키텍처](#️-아키텍처) • 
 [⚡ 주요 기능](#-주요-기능) • 
 [📡 API](#-api-문서) •
 [🚀 시작하기](#-시작하기)
@@ -42,8 +34,7 @@
 </div>
 
 ---
-
-<br/>
+<br/><br/>
 
 ## 📖 프로젝트 개요
 
@@ -51,9 +42,9 @@
 
 ### "당신의 이웃이 당신의 친구가 되는 순간"
 
-<br/>
-
 </div>
+
+<br/>
 
 ### 🎯 프로젝트 미션
 
@@ -84,8 +75,7 @@ NEIGHBUS는 이러한 사회적 단절을 해결하고자 합니다.
 <br/>
 
 ---
-
-<br/>
+<br/><br/>
 
 ## 💡 핵심 가치
 
@@ -98,17 +88,17 @@ NEIGHBUS는 이러한 사회적 단절을 해결하고자 합니다.
 <table>
 <tr>
 <td align="center" width="33%">
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Handshake.png" width="80"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f91d/512.gif" width="96"/>
 <h3>🤝 연결 (Connection)</h3>
 <p>온라인에서 시작해<br/>오프라인으로 확장되는<br/>진정한 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/World%20Map.png" width="80"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f5fa/512.gif" width="96"/>
 <h3>📍 지역성 (Locality)</h3>
 <p>내 주변의<br/>검증된 장소와 모임 정보로<br/>지역 생활의 가치 증대</p>
 </td>
 <td align="center" width="33%">
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Rocket.png" width="80"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.gif" width="96"/>
 <h3>📱 사용자 경험 (UX)</h3>
 <p>네이티브 앱처럼<br/>부드럽고 직관적인<br/>사용자 경험 제공</p>
 </td>
@@ -120,8 +110,7 @@ NEIGHBUS는 이러한 사회적 단절을 해결하고자 합니다.
 <br/>
 
 ---
-
-<br/>
+<br/><br/>
 
 ## 🎯 기술적 도전과 해결
 
@@ -214,22 +203,29 @@ Redux와 같은 외부 라이브러리 없이 React 내장 기능만으로 <b>�
 <br/>
 
 ---
+<br/><br/>
 
-<br/>
-
-## 🏗️ 앱 아키텍처
+## 🏗️ 아키텍처
 
 ### 🛠️ 기술 스택
 
-| Category | Technology & Purpose |
-|---|---|
-| **Core** | <img src="https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/React%20Native-0.83-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/TypeScript-5.8.3-3178C6?style=flat-square&logo=typescript&logoColor=white"/><br/> ∙ **React & React Native**: 크로스플랫폼 앱 개발<br/> ∙ **TypeScript**: 타입 안정성을 통한 코드 품질 향상 |
-| **Navigation** | <img src="https://img.shields.io/badge/React%20Navigation-7.x-6B52AE?style=flat-square&logo=react&logoColor=white"/><br/> ∙ **React Navigation**: 스택 기반의 화면 전환 및 관리 |
-| **State & Data** | <img src="https://img.shields.io/badge/@react--native--async--storage/async--storage-2.2.0-purple?style=flat-square"/><br/> ∙ **AsyncStorage**: 사용자 토큰, 설정 등 비동기 로컬 데이터 저장<br/> ∙ **React Context API**: 전역 사용자 정보 및 상태 관리 |
-| **Real-time** | <img src="https://img.shields.io/badge/WebSocket-STOMP-010101?style=flat-square&logo=socketdotio&logoColor=white"/> <img src="https://img.shields.io/badge/react--native--webview-13.16.0-blue?style=flat-square"/><br/> ∙ **@stomp/stompjs & WebView**: WebSocket을 이용한 실시간 채팅 기능 구현 |
-| **UI/UX** | <img src="https://img.shields.io/badge/react--native--vector--icons-10.3.0-orange?style=flat-square"/> <img src="https://img.shields.io/badge/react--native--calendars-1.1313-blue?style=flat-square"/> <img src="https://img.shields.io/badge/react--native--maps-1.26.20-green?style=flat-square"/><br/> ∙ **Vector Icons**: 다양한 아이콘 사용<br/> ∙ **Calendars / Date Picker**: 날짜 선택 및 캘린더 UI<br/> ∙ **Image Picker**: 갤러리 및 프로필 이미지 선택<br/> ∙ **Pell Rich Editor / Render HTML**: 게시판 글 작성 및 HTML 렌더링 |
-| **External APIs** | <img src="https://img.shields.io/badge/Google%20Maps%20API-4285F4?style=flat-square&logo=google-maps&logoColor=white"/><br/>∙ **Google Maps Geocoding API**: 좌표를 주소로 변환 |
-| **DevOps** | <img src="https://img.shields.io/badge/Eslint-4B32C3?style=flat-square&logo=eslint&logoColor=white"/> <img src="https://img.shields.io/badge/Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=black"/><br/> ∙ **ESLint & Prettier**: 코드 스타일 및 컨벤션 자동화 |
+<img src="https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/React%20Native-0.83-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/TypeScript-5.8.3-3178C6?style=flat-square&logo=typescript&logoColor=white"/>
+- **Core**: React, React Native, TypeScript를 사용하여 크로스플랫폼 앱을 개발하고 타입 안정성을 확보합니다.
+
+<img src="https://img.shields.io/badge/React%20Navigation-7.x-6B52AE?style=flat-square&logo=react&logoColor=white"/>
+- **Navigation**: React Navigation을 사용하여 스택 기반의 화면을 전환하고 관리합니다.
+
+<img src="https://img.shields.io/badge/@react--native--async--storage/async--storage-2.2.0-purple?style=flat-square"/>
+- **State & Data**: AsyncStorage와 React Context API를 조합하여 로컬 데이터 저장 및 전역 상태를 관리합니다.
+
+<img src="https://img.shields.io/badge/WebSocket-STOMP-010101?style=flat-square&logo=socketdotio&logoColor=white"/> <img src="https://img.shields.io/badge/react--native--webview-13.16.0-blue?style=flat-square"/>
+- **Real-time**: @stomp/stompjs와 WebView를 이용하여 실시간 채팅 기능을 구현합니다.
+
+<img src="https://img.shields.io/badge/react--native--maps-1.26.20-green?style=flat-square"/> <img src="https://img.shields.io/badge/Google%20Maps%20API-4285F4?style=flat-square&logo=google-maps&logoColor=white"/>
+- **Map & Location**: React Native Maps와 Google Maps Geocoding API를 연동하여 지도 및 위치 관련 기능을 제공합니다.
+
+<img src="https://img.shields.io/badge/Eslint-4B32C3?style=flat-square&logo=eslint&logoColor=white"/> <img src="https://img.shields.io/badge/Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=black"/>
+- **DevOps**: ESLint와 Prettier를 통해 코드 스타일과 컨벤션을 자동화합니다.
 
 <br/>
 
@@ -272,8 +268,7 @@ graph TD
 <br/>
 
 ---
-
-<br/>
+<br/><br/>
 
 ## ⚡ 주요 기능
 
@@ -290,16 +285,15 @@ graph TD
 | **🏠 홈** | `HomeScreen.tsx` | - 카테고리별 동아리 목록<br/>- 신규 모임 및 인기 게시글 표시 |
 | **🔐 인증** | `LoginScreen.tsx`<br/>`SignupScreen.tsx` | - 자체 이메일/비밀번호 기반 로그인 및 회원가입<br/>- AsyncStorage를 통한 로그인 상태 유지 |
 | **🎪 동아리** | `ClubCreateScreen.tsx`<br/>`ClubDetailScreen.tsx` | - 동아리 생성, 검색, 가입 기능<br/>- 동아리 상세 정보 및 멤버 목록 확인 |
-| **📅 모임** | `CreateMeetingScreen.tsx`<br/>`MeetingDetailScreen.tsx` | - 동아리 내 오프라인 모임 생성<br/>- 지도(react-native-maps)를 통한 장소 지정<br/>- 모임 참여 및 참여자 관리 |
+| **📅 모임** | `CreateMeetingScreen.tsx`<br/>`MeetingDetailScreen.tsx` | - 동아리 내 오프라인 모임 생성<br/>- 지도를 통한 장소 지정 및 주소 변환<br/>- 모임 참여 및 참여자 관리 |
 | **💬 실시간 채팅** | `ChatScreen.tsx` | - STOMP + WebSocket 기반 실시간 채팅<br/>- 친구 목록 및 1:1 채팅방 기능 |
-| **📝 게시판** | `FreeBoardScreen.tsx`<br/>`GalleryScreen.tsx` | - 자유게시판, 갤러리, 공지사항<br/>- Pell Rich Editor를 사용한 글 작성<br/>- 댓글 및 반응 기능 |
+| **📝 게시판** | `FreeBoardScreen.tsx`<br/>`GalleryScreen.tsx` | - 자유게시판, 갤러리, 공지사항<br/>- Rich Editor를 사용한 글 작성<br/>- 댓글 및 반응 기능 |
 | **👤 마이페이지** | `MyPage.tsx` | - 내 정보 수정 및 프로필 이미지 변경<br/>- 내가 가입한 동아리 및 작성한 글 목록 |
 
 <br/>
 
 ---
-
-<br/>
+<br/><br/>
 
 ## 📡 API 문서
 
@@ -348,8 +342,7 @@ graph TD
 <br/>
 
 ---
-
-<br/>
+<br/><br/>
 
 ## 🚀 시작하기
 
@@ -369,7 +362,7 @@ graph TD
 - [Android Studio](https://developer.android.com/studio) (Android 개발용)
 - [CocoaPods](https://cocoapods.org/) (iOS)
 
-React Native 개발 환경 설정은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하세요.
+> React Native 개발 환경 설정은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하세요.
 
 <br/>
 
@@ -422,7 +415,6 @@ React Native 개발 환경 설정은 [공식 문서](https://reactnative.dev/doc
 <br/>
 
 ---
-
 <br/>
 
 <div align="center">
