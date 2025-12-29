@@ -9,7 +9,7 @@
 
 <br/>
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&duration=3000&pause=1000&color=2E8B57&center=true&vCenter=true&multiline=true&width=600&height=100&lines=Neighborhood+%2B+Bus+%3D+NEIGHBUS;(%EC%9D%B4%EC%9B%83)+%2B+(%ED%86%B5%ED%95%98%EB%8B%A4);%EC%9D%B4%EC%9B%83%EA%B3%BC+%ED%86%B5%ED%95%98%EB%8A%94+%EB%94%B0%EB%9C%BB%ED%95%9C+%EC%BB%A4%EB%AE%A4%EB%8B%88%ED%8B%B0)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=24&duration=3000&pause=1000&color=2E8B57&center=true&vCenter=true&multiline=true&width=600&height=120&lines=Neighborhood+%2B+Bus+%3D+NEIGHBUS;+++(%EC%9D%B4%EC%9B%83)++++%2B+(%ED%86%B5%ED%95%98%EB%8B%A4);%EC%9D%B4%EC%9B%83%EA%B3%BC+%ED%86%B5%ED%95%98%EB%8A%94+%EB%94%B0%EB%9C%BB%ED%95%9C+%EC%BB%A4%EB%AE%A4%EB%8B%88%ED%8B%B0)](https://git.io/typing-svg)
 
 <br/>
 
