@@ -45,7 +45,7 @@
 
 </div>
 
-<br/>
+<br/><br/><br/>
 
 <div align="center">
 
@@ -96,7 +96,7 @@
 <table>
 <tr>
 <td align="center" width="33%">
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Handshake.png" width="96"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f91d/512.gif" width="96"/>
 <h3>🤝 연결</h3>
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
