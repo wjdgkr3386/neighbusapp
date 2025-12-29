@@ -60,12 +60,12 @@
 <table>
 <tr>
 <td align="center" width="33%">
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Handshake.png" width="96"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f91d/512.gif" width="96"/>
 <h3>🤝 연결</h3>
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Round%20Pushpin.png" width="96"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4cd/512.gif" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
@@ -232,41 +232,27 @@ graph TD
 
 ### 📋 사전 요구사항
 
-- [Node.js](https://nodejs.org/) (LTS)
-- [Watchman](https://facebook.github.io/watchman/) (macOS)
-- [Xcode](https://developer.apple.com/xcode/) (iOS)
-- [Android Studio](https://developer.android.com/studio) (Android)
-- [CocoaPods](https://cocoapods.org/) (iOS)
+| Icon | Tool / Platform | Description |
+| :---: | :--- | :--- |
+| 📦 | **[Node.js](https://nodejs.org/)** | LTS 버전 권장 |
+| 👀 | **[Watchman](https://facebook.github.io/watchman/)** | macOS 파일 시스템 감시 도구 |
+| 👩‍💻 | **[Xcode](https://developer.apple.com/xcode/)** | iOS 개발용 |
+| 🤖 | **[Android Studio](https://developer.android.com/studio)** | Android 개발용 |
+| 🍫 | **[CocoaPods](https://cocoapods.org/)** | iOS 의존성 관리자 |
 
-> React Native 개발 환경 설정은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하세요.
+> React Native 개발 환경 설정에 대한 자세한 내용은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하세요.
 
 <br/>
 
-### ⚡ 빠른 시작
+### ⚡ 설치 및 실행
 
-1.  **소스코드 복제 및 의존성 설치**
-    ```bash
-    git clone https://github.com/your-username/neighbusapp-main.git
-    cd neighbusapp-main
-    npm install
-    ```
-
-2.  **iOS 추가 의존성 설치**
-    ```bash
-    cd ios && pod install && cd ..
-    ```
-
-3.  **백엔드 서버 주소 설정**
-    `src/config.ts` 파일의 `BASE_URL`을 실행 중인 백엔드 서버 주소로 변경합니다.
-
-4.  **앱 실행**
-    ```bash
-    # iOS
-    npm run ios
-
-    # Android
-    npm run android
-    ```
+| Step | Command | Description |
+| :---: | :--- | :--- |
+| 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | 소스코드를 복제하고 디렉토리로 이동합니다. |
+| 2️⃣ | `npm install` | 프로젝트에 필요한 의존성을 설치합니다. |
+| 3️⃣ | `cd ios && pod install && cd ..` | iOS 네이티브 모듈 의존성을 설치합니다. |
+| 4️⃣ | (에디터에서) `src/config.ts` | `BASE_URL`을 실제 백엔드 서버 주소로 변경합니다. |
+| 5️⃣ | `npm run ios`<br/>또는<br/>`npm run android` | 개발 서버를 시작하고 앱을 시뮬레이터에서 실행합니다. |
 
 <br/>
 
