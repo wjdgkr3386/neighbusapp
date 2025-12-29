@@ -56,28 +56,28 @@
 <table>
 <tr>
 <td align="center" width="25%">
-<a href="https://github.com/member1" target="_blank">
+<a href="https://github.com/wjdgkr3386" target="_blank">
 <img src="https://github.com/identicons/member1.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원 A</b><br/>
 <sub>인증/보안</sub>
 </a>
 </td>
 <td align="center" width="25%">
-<a href="https://github.com/member2" target="_blank">
+<a href="https://github.com/happycat12389" target="_blank">
 <img src="https://github.com/identicons/member2.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원 B</b><br/>
 <sub>동아리/모임</sub>
 </a>
 </td>
 <td align="center" width="25%">
-<a href="https://github.com/member3" target="_blank">
+<a href="https://github.com/library-min" target="_blank">
 <img src="https://github.com/identicons/member3.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원 C</b><br/>
 <sub>게시판/갤러리</sub>
 </a>
 </td>
 <td align="center" width="25%">
-<a href="https://github.com/member4" target="_blank">
+<a href="https://github.com/Mingyu7" target="_blank">
 <img src="https://github.com/identicons/member4.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원 D</b><br/>
 <sub>관리자/통계</sub>
