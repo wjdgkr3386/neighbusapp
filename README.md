@@ -50,6 +50,46 @@
 ---
 <br/><br/>
 
+## 👥 팀 소개
+
+<div align="center">
+
+### "함께 성장하는 개발자들"
+
+<br/>
+
+<table>
+<tr>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member1.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 A</b><br/>
+<sub>인증/보안</sub><br/>
+</td>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member2.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 B</b><br/>
+<sub>동아리/모임</sub><br/>
+</td>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member3.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 C</b><br/>
+<sub>게시판/갤러리</sub><br/>
+</td>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member4.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 D</b><br/>
+<sub>관리자/통계</sub><br/>
+</td>
+</tr>
+</table>
+
+</div>
+
+<br/>
+
+---
+<br/><br/>
+
 ## 💡 핵심 가치
 
 <div align="center">
@@ -66,7 +106,7 @@
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3d8/512.gif" width="96"/>
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Globe%20Showing%20Europe-Africa.png" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
@@ -252,59 +292,12 @@ graph TD
 | 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | 소스코드를 복제하고 디렉토리로 이동합니다. |
 | 2️⃣ | `npm install` | 프로젝트에 필요한 의존성을 설치합니다. |
 | 3️⃣ | `cd ios && pod install && cd ..` | iOS 네이티브 모듈 의존성을 설치합니다. |
-| 4️⃣ | (에디터에서) `src/config.ts` | `BASE_URL`을 실제 백엔드 서버 주소로 변경합니다. |
-| 5️⃣ | `npm run ios`<br/>또는<br/>`npm run android` | 개발 서버를 시작하고 앱을 시뮬레이터에서 실행합니다. |
+| 4️⃣ | (에디터) `src/config.ts` | `BASE_URL`을 실제 백엔드 서버 주소로 변경합니다. |
+| 5️⃣ | `npm run ios`<br/> Or <br/>`npm run android` | 개발 서버를 시작하고 앱을 시뮬레이터에서 실행합니다. |
 
 <br/>
 
 ---
-<br/><br/>
-
-## 👥 팀 소개
-
-<div align="center">
-
-### "함께 성장하는 개발자들"
-
-<br/>
-
-<table>
-<tr>
-<td align="center" width="25%">
-<img src="https://github.com/identicons/member1.png" width="120" style="border-radius:50%"/><br/>
-<b>팀원 A</b><br/>
-<sub>인증/보안</sub><br/>
-</td>
-<td align="center" width="25%">
-<img src="https://github.com/identicons/member2.png" width="120" style="border-radius:50%"/><br/>
-<b>팀원 B</b><br/>
-<sub>동아리/모임</sub><br/>
-</td>
-<td align="center" width="25%">
-<img src="https://github.com/identicons/member3.png" width="120" style="border-radius:50%"/><br/>
-<b>팀원 C</b><br/>
-<sub>게시판/갤러리</sub><br/>
-</td>
-<td align="center" width="25%">
-<img src="https://github.com/identicons/member4.png" width="120" style="border-radius:50%"/><br/>
-<b>팀원 D</b><br/>
-<sub>관리자/통계</sub><br/>
-</td>
-</tr>
-</table>
-
-</div>
-
-<br/>
-
----
-<br/>
-
-<div align="center">
-
-### 🎉 이 프로젝트가 도움이 되셨다면 Star를 눌러주세요!
-
-<br/>
 
 **Made with ❤️ by NEIGHBUS Team**
 
