@@ -14,10 +14,10 @@
 
 <br/>
 
-[![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React Navigation](https://img.shields.io/badge/React_Navigation-6B52AE?style=for-the-badge&logo=react&logoColor=white)](https://reactnavigation.org/)
-[![Stomp.js](https://img.shields.io/badge/Stomp.js-F05033?style=for-the-badge&logo=git&logoColor=white)](https://stomp-js.github.io/)
+[![React Native](https://img.shields.io/badge/React_Native-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React Navigation](https://img.shields.io/badge/React_Navigation-6B52AE?style=flat-square&logo=react&logoColor=white)](https://reactnavigation.org/)
+[![Stomp.js](https://img.shields.io/badge/Stomp.js-F05033?style=flat-square&logo=git&logoColor=white)](https://stomp-js.github.io/)
 
 <br/><br/>
 
@@ -26,7 +26,6 @@
 [🎯 기술적 도전](#-기술적-도전과-해결) • 
 [🏗️ 아키텍처](#️-아키텍처) • 
 [⚡ 주요 기능](#-주요-기능) • 
-[📡 API](#-api-문서) •
 [🚀 시작하기](#-시작하기)
 
 <br/>
@@ -46,31 +45,13 @@
 
 <br/>
 
-### 🎯 프로젝트 미션
-
-현대 도시에서는 **같은 건물에 살면서도 서로를 모르는** 시대입니다.  
-NEIGHBUS는 이러한 사회적 단절을 해결하고자 합니다.
-
-**기술을 통해 이웃을 연결하고, 오프라인 만남을 통해 진정한 커뮤니티를 구축합니다.**
+**NEIGHBUS**는 기술을 통해 이웃 간의 단절을 해결하고, 오프라인 만남으로 확장되는 진정한 커뮤니티를 구축하는 것을 목표로 하는 모바일 애플리케이션입니다.
 
 <br/>
 
-### 📊 프로젝트 요약
-
-<table>
-<tr>
-<td align="center" width="25%"><b>🗓️ 개발 기간</b></td>
-<td align="center" width="25%"><b>👥 팀 구성</b></td>
-<td align="center" width="25%"><b>🎯 목표</b></td>
-<td align="center" width="25%"><b>📈 결과</b></td>
-</tr>
-<tr>
-<td align="center">2025.10.03 ~ 2025.12.31<br/>(3개월)</td>
-<td align="center">프론트엔드(본인)</td>
-<td align="center">지역 커뮤니티<br/>활성화 모바일 앱</td>
-<td align="center">MVP 완성<br/>포트폴리오 제작</td>
-</tr>
-</table>
+| 🗓️ **개발 기간** | 👥 **팀 구성** | 🎯 **목표** | 📈 **결과** |
+| :---: | :---: | :---: | :---: |
+| 2025.10 ~ 2025.12 | 프론트엔드 (1인) | 지역 커뮤니티 활성화 앱 | MVP 완성 |
 
 <br/>
 
@@ -89,18 +70,18 @@ NEIGHBUS는 이러한 사회적 단절을 해결하고자 합니다.
 <tr>
 <td align="center" width="33%">
 <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f91d/512.gif" width="96"/>
-<h3>🤝 연결 (Connection)</h3>
-<p>온라인에서 시작해<br/>오프라인으로 확장되는<br/>진정한 이웃 커뮤니티</p>
+<h3>🤝 연결</h3>
+<p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f5fa/512.gif" width="96"/>
-<h3>📍 지역성 (Locality)</h3>
-<p>내 주변의<br/>검증된 장소와 모임 정보로<br/>지역 생활의 가치 증대</p>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f310/512.gif" width="96"/>
+<h3>📍 지역성</h3>
+<p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
 <td align="center" width="33%">
 <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.gif" width="96"/>
-<h3>📱 사용자 경험 (UX)</h3>
-<p>네이티브 앱처럼<br/>부드럽고 직관적인<br/>사용자 경험 제공</p>
+<h3>📱 사용자 경험</h3>
+<p>네이티브처럼 부드럽고<br/>직관적인 사용성</p>
 </td>
 </tr>
 </table>
@@ -124,81 +105,31 @@ NEIGHBUS는 이러한 사회적 단절을 해결하고자 합니다.
 
 ### 🔥 Challenge 1: 실시간 채팅 기능 구현
 
-<table>
-<tr>
-<td width="30%" align="center"><b>📌 과제</b></td>
-<td width="70%">
-React Native 환경에서 네이티브 WebSocket을 직접 사용하기보다, 안정적이고 검증된 STOMP 프로토콜을 통해 실시간 채팅을 구현해야 했습니다.
-</td>
-</tr>
-<tr>
-<td align="center"><b>💡 해결</b></td>
-<td>
-<b>`@stomp/stompjs`와 `WebView`를 결합</b>하여 문제를 해결했습니다.<br/>
-• `WebView` 내에서 WebSocket 연결과 STOMP 프로토콜 처리를 전담하는 HTML/JS 브릿지를 생성했습니다.<br/>
-• React Native에서는 `WebView`의 `postMessage`와 `onMessage`를 통해 메시지를 주고받는 방식으로 통신하여, 네이티브 코드 의존성을 최소화하고 안정성을 확보했습니다.
-</td>
-</tr>
-<tr>
-<td align="center"><b>📊 결과</b></td>
-<td>
-복잡한 네이티브 모듈 설정 없이 <b>안정적인 실시간 채팅 기능</b>을 구현했으며, 웹소켓 연결 관리를 `WebView`에 위임하여 앱의 부담을 줄였습니다.
-</td>
-</tr>
-</table>
+| | |
+| :--- | :--- |
+| **📌 과제** | React Native 환경에서 안정적인 실시간 채팅을 구현해야 했습니다. |
+| **💡 해결** | **`@stomp/stompjs`**와 **`WebView`**를 결합하여 문제를 해결했습니다.<br/> • `WebView` 내에서 WebSocket 연결 및 STOMP 프로토콜 처리를 전담하는 브릿지 생성.<br/> • React Native는 `WebView`와 `postMessage`로 통신하여 네이티브 의존성 최소화. |
+| **📊 결과** | 복잡한 네이티브 모듈 설정 없이 **안정적인 실시간 채팅 기능**을 구현하고, 앱의 부담을 줄였습니다. |
 
 <br/>
 
 ### 🔥 Challenge 2: 전역 상태 및 인증 관리
 
-<table>
-<tr>
-<td width="30%" align="center"><b>📌 과제</b></td>
-<td width="70%">
-앱 전반에 걸쳐 사용자의 로그인 상태와 프로필 정보를 일관되게 유지하고, 앱을 재시작해도 로그인 상태가 유지되어야 했습니다.
-</td>
-</tr>
-<tr>
-<td align="center"><b>💡 해결</b></td>
-<td>
-<b>`React Context API`와 `AsyncStorage`를 조합</b>하여 상태 관리 시스템을 구축했습니다.<br/>
-• **UserContext**: 로그인 시 사용자 정보와 인증 토큰을 Context에 저장하여, 앱 내 모든 컴포넌트가 쉽게 접근할 수 있도록 했습니다.<br/>
-• **AsyncStorage**: 인증 토큰을 디바이스의 영구 저장소에 저장하여, 앱 실행 시 토큰 유무를 확인하고 자동으로 로그인 상태를 복원하는 로직을 구현했습니다.
-</td>
-</tr>
-<tr>
-<td align="center"><b>📊 결과</b></td>
-<td>
-Redux와 같은 외부 라이브러리 없이 React 내장 기능만으로 <b>효율적인 전역 상태 및 인증 관리 시스템</b>을 구축했습니다.
-</td>
-</tr>
-</table>
+| | |
+| :--- | :--- |
+| **📌 과제** | 앱 전반에 걸쳐 사용자 로그인 상태를 일관되게 유지하고, 앱 재시작 시에도 자동 로그인 되어야 했습니다. |
+| **💡 해결** | **`React Context API`**와 **`AsyncStorage`**를 조합하여 상태 관리 시스템을 구축했습니다.<br/> • **UserContext**: 로그인 시 사용자 정보와 토큰을 Context에 저장하여 앱 전역에서 접근.<br/> • **AsyncStorage**: 인증 토큰을 디바이스에 영구 저장하여 앱 재시작 시 자동 로그인 구현. |
+| **📊 결과** | 외부 라이브러리 없이 React 내장 기능만으로 **효율적인 전역 인증 시스템**을 구축했습니다. |
 
 <br/>
 
 ### 🔥 Challenge 3: 외부 API 및 네이티브 기능 연동
 
-<table>
-<tr>
-<td width="30%" align="center"><b>📌 과제</b></td>
-<td width="70%">
-모임 장소 선택 시, 위도/경도 좌표를 사람이 읽을 수 있는 주소로 변환하고, 지도에 정확히 표시해야 했습니다.
-</td>
-</tr>
-<td align="center"><b>💡 해결</b></td>
-<td>
-<b>`react-native-maps`와 `Google Maps Geocoding API`를 연동</b>했습니다.<br/>
-• `react-native-maps`의 `onPress` 이벤트로 사용자가 선택한 위치의 위도/경도 좌표를 얻었습니다.<br/>
-• 해당 좌표를 **Google Geocoding API**에 전송하여 주소 정보를 받아오고, 이를 화면에 표시하여 사용자 경험을 향상시켰습니다.
-</td>
-</tr>
-<tr>
-<td align="center"><b>📊 결과</b></td>
-<td>
-단순한 지도 표시를 넘어, <b>좌표-주소 변환 기능</b>을 통해 사용자가 모임 장소를 더 명확하게 인지하고 설정할 수 있도록 개선했습니다.
-</td>
-</tr>
-</table>
+| | |
+| :--- | :--- |
+| **📌 과제** | 모임 장소 선택 시, 지도에 표시된 좌표를 사용자가 이해하기 쉬운 주소로 변환해야 했습니다. |
+| **💡 해결** | **`react-native-maps`**와 **`Google Maps Geocoding API`**를 연동했습니다.<br/> • `react-native-maps`로 사용자가 선택한 위치의 위도/경도 좌표 획득.<br/> • 해당 좌표를 **Google Geocoding API**에 전송하여 실제 주소로 변환 후 화면에 표시. |
+| **📊 결과** | 단순 지도 표시를 넘어, **좌표-주소 변환 기능**으로 사용자가 모임 장소를 더 명확하게 설정할 수 있도록 개선했습니다. |
 
 <br/>
 
@@ -209,23 +140,12 @@ Redux와 같은 외부 라이브러리 없이 React 내장 기능만으로 <b>�
 
 ### 🛠️ 기술 스택
 
-<img src="https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/React%20Native-0.83-61DAFB?style=flat-square&logo=react&logoColor=black"/> <img src="https://img.shields.io/badge/TypeScript-5.8.3-3178C6?style=flat-square&logo=typescript&logoColor=white"/>
-- **Core**: React, React Native, TypeScript를 사용하여 크로스플랫폼 앱을 개발하고 타입 안정성을 확보합니다.
-
-<img src="https://img.shields.io/badge/React%20Navigation-7.x-6B52AE?style=flat-square&logo=react&logoColor=white"/>
-- **Navigation**: React Navigation을 사용하여 스택 기반의 화면을 전환하고 관리합니다.
-
-<img src="https://img.shields.io/badge/@react--native--async--storage/async--storage-2.2.0-purple?style=flat-square"/>
-- **State & Data**: AsyncStorage와 React Context API를 조합하여 로컬 데이터 저장 및 전역 상태를 관리합니다.
-
-<img src="https://img.shields.io/badge/WebSocket-STOMP-010101?style=flat-square&logo=socketdotio&logoColor=white"/> <img src="https://img.shields.io/badge/react--native--webview-13.16.0-blue?style=flat-square"/>
-- **Real-time**: @stomp/stompjs와 WebView를 이용하여 실시간 채팅 기능을 구현합니다.
-
-<img src="https://img.shields.io/badge/react--native--maps-1.26.20-green?style=flat-square"/> <img src="https://img.shields.io/badge/Google%20Maps%20API-4285F4?style=flat-square&logo=google-maps&logoColor=white"/>
-- **Map & Location**: React Native Maps와 Google Maps Geocoding API를 연동하여 지도 및 위치 관련 기능을 제공합니다.
-
-<img src="https://img.shields.io/badge/Eslint-4B32C3?style=flat-square&logo=eslint&logoColor=white"/> <img src="https://img.shields.io/badge/Prettier-F7B93E?style=flat-square&logo=prettier&logoColor=black"/>
-- **DevOps**: ESLint와 Prettier를 통해 코드 스타일과 컨벤션을 자동화합니다.
+- **Core**: `React`, `React Native`, `TypeScript`
+- **Navigation**: `React Navigation`
+- **State & Data**: `AsyncStorage`, `React Context API`
+- **Real-time**: `@stomp/stompjs`, `react-native-webview`
+- **Map & Location**: `react-native-maps`, `Google Maps Geocoding API`
+- **DevOps**: `ESLint`, `Prettier`
 
 <br/>
 
@@ -236,8 +156,7 @@ Redux와 같은 외부 라이브러리 없이 React 내장 기능만으로 <b>�
 ```mermaid
 graph TD
     subgraph "Auth Stack"
-        Welcome --> Login
-        Welcome --> Signup
+        Welcome --> Login & Signup
     end
 
     subgraph "Main App Stack"
@@ -246,9 +165,6 @@ graph TD
         Home --> FreeBoard
         Home --> Chat
         Home --> MyPage
-        
-        ClubDetail --> CreateMeeting
-        FreeBoard --> FreeBoardWrite
     end
 
     Start(App Entry) --> |isLoggedIn?| AuthStack{isLoggedIn}
@@ -272,72 +188,15 @@ graph TD
 
 ## ⚡ 주요 기능
 
-<div align="center">
-
-### "사용자 경험을 최우선으로 설계된 기능들"
-
-</div>
-
-<br/>
-
-| 기능 | 스크린 | 설명 |
-|---|---|---|
-| **🏠 홈** | `HomeScreen.tsx` | - 카테고리별 동아리 목록<br/>- 신규 모임 및 인기 게시글 표시 |
-| **🔐 인증** | `LoginScreen.tsx`<br/>`SignupScreen.tsx` | - 자체 이메일/비밀번호 기반 로그인 및 회원가입<br/>- AsyncStorage를 통한 로그인 상태 유지 |
-| **🎪 동아리** | `ClubCreateScreen.tsx`<br/>`ClubDetailScreen.tsx` | - 동아리 생성, 검색, 가입 기능<br/>- 동아리 상세 정보 및 멤버 목록 확인 |
-| **📅 모임** | `CreateMeetingScreen.tsx`<br/>`MeetingDetailScreen.tsx` | - 동아리 내 오프라인 모임 생성<br/>- 지도를 통한 장소 지정 및 주소 변환<br/>- 모임 참여 및 참여자 관리 |
-| **💬 실시간 채팅** | `ChatScreen.tsx` | - STOMP + WebSocket 기반 실시간 채팅<br/>- 친구 목록 및 1:1 채팅방 기능 |
-| **📝 게시판** | `FreeBoardScreen.tsx`<br/>`GalleryScreen.tsx` | - 자유게시판, 갤러리, 공지사항<br/>- Rich Editor를 사용한 글 작성<br/>- 댓글 및 반응 기능 |
-| **👤 마이페이지** | `MyPage.tsx` | - 내 정보 수정 및 프로필 이미지 변경<br/>- 내가 가입한 동아리 및 작성한 글 목록 |
-
-<br/>
-
----
-<br/><br/>
-
-## 📡 API 문서
-
-<div align="center">
-
-### "React Native 앱과 백엔드 서버 간의 RESTful API"
-**Base URL:** `http://127.0.0.1:8090`
-
-</div>
-
-<br/>
-
-### 🔐 인증 API (`/api/mobile/account`)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/mobileLogin` | 이메일/비밀번호로 로그인 |
-| `POST` | `/insertSignup` | 회원가입 |
-| `GET` | `/getRegions` | 지역 목록 조회 (회원가입 시 사용) |
-
-<br/>
-
-### 🎪 동아리 API (`/api/mobile/club`)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/getClubs` | 동아리 목록 조회 (카테고리/키워드 필터링) |
-| `POST` | `/create` | 동아리 생성 |
-| `GET` | `/{clubId}` | 동아리 상세 정보 조회 |
-| `POST` | `/join/{clubId}` | 동아리 가입 |
-
-<br/>
-
-### 📅 모임 API (`/api/mobile/recruitment`)
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/new` | 새 모임 생성 |
-| `GET` | `/{meetingId}` | 모임 상세 정보 조회 |
-| `POST` | `/join` | 모임 참여 |
-
-<br/>
-
-*(이 외 게시판, 채팅, 마이페이지 등 다수 API 존재)*
+| 기능 | 설명 |
+| :--- | :--- |
+| **🏠 홈** | 카테고리별 동아리 목록, 신규 모임 및 인기 게시글 표시 |
+| **🔐 인증** | 이메일/비밀번호 기반 로그인 및 회원가입, 자동 로그인 |
+| **🎪 동아리** | 동아리 생성, 검색, 가입 및 상세 정보 확인 |
+| **📅 모임** | 동아리 내 오프라인 모임 생성, 지도 기반 장소 지정 |
+| **💬 실시간 채팅** | STOMP + WebSocket 기반 실시간 채팅 및 친구 관리 |
+| **📝 게시판** | 자유게시판, 갤러리, 공지사항 기능 (글, 댓글, 반응) |
+| **👤 마이페이지** | 내 정보 수정, 가입한 동아리 및 작성 글 목록 확인 |
 
 <br/>
 
@@ -356,10 +215,10 @@ graph TD
 
 ### 📋 사전 요구사항
 
-- [Node.js](https://nodejs.org/) (LTS 버전 권장)
+- [Node.js](https://nodejs.org/) (LTS)
 - [Watchman](https://facebook.github.io/watchman/) (macOS)
-- [Xcode](https://developer.apple.com/xcode/) (iOS 개발용)
-- [Android Studio](https://developer.android.com/studio) (Android 개발용)
+- [Xcode](https://developer.apple.com/xcode/) (iOS)
+- [Android Studio](https://developer.android.com/studio) (Android)
 - [CocoaPods](https://cocoapods.org/) (iOS)
 
 > React Native 개발 환경 설정은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하세요.
@@ -377,40 +236,31 @@ graph TD
 2.  **의존성 설치**
     ```bash
     npm install
-    # 또는
-    yarn install
     ```
 
 3.  **iOS 의존성 설치 (Pod)**
     ```bash
-    cd ios
-    pod install
-    cd ..
+    cd ios && pod install && cd ..
     ```
 
 4.  **환경 설정**
     `src/config.ts` 파일의 `BASE_URL`을 실제 실행 중인 백엔드 서버 주소로 변경하세요.
     ```typescript
-    // 예시: 로컬에서 실행 중인 백엔드 서버
+    // 로컬 서버
     export const BASE_URL: string = 'http://127.0.0.1:8090'; 
     
-    // Android 에뮬레이터에서 로컬 서버에 접속할 경우
+    // Android 에뮬레이터 -> 로컬
     // export const BASE_URL: string = 'http://10.0.2.2:8090';
     ```
 
 5.  **앱 실행**
+    ```bash
+    # iOS
+    npm run ios
 
-    - **iOS**
-      ```bash
-      npm run ios
-      # 또는 Xcode에서 직접 실행
-      ```
-
-    - **Android**
-      ```bash
-      npm run android
-      # 또는 Android Studio에서 직접 실행
-      ```
+    # Android
+    npm run android
+    ```
 
 <br/>
 
