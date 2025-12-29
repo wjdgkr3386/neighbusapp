@@ -296,12 +296,12 @@ graph TD
     <tr>
       <td align="center">2</td>
       <td><code>npm install</code></td>
-      <td><code>package.json</code>에 명시된<br/>모든 JavaScript 의존성을 설치합니다.</td>
+      <td><code>package.json</code>에 명시된 모든 JavaScript 의존성을 설치.</td>
     </tr>
     <tr>
       <td align="center">3</td>
       <td><code>cd ios && pod install && cd ..</code></td>
-      <td>iOS 프로젝트에 필요한<br/>네이티브 모듈 의존성을 설치합니다.</td>
+      <td>iOS 프로젝트에 필요한 네이티브 모듈 의존성을 설치.</td>
     </tr>
     <tr>
       <td align="center">4</td>
