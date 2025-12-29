@@ -57,28 +57,28 @@
 <tr>
 <td align="center" width="25%">
 <a href="https://github.com/wjdgkr3386" target="_blank">
-<img src="https://github.com/identicons/member1.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/wjdgkr3386.png" width="120" style="border-radius:50%"/><br/>
 <b>팀장</b><br/>
 <sub>시큐리티 / AWS(S3)</sub>
 </a>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/happycat12389" target="_blank">
-<img src="https://github.com/identicons/member2.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/happycat12389.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원</b><br/>
 <sub>회원가입 / 모임</sub>
 </a>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/library-min" target="_blank">
-<img src="https://github.com/identicons/member3.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/library-min.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원</b><br/>
 <sub>관리자 / UX/UI </sub>
 </a>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/Mingyu7" target="_blank">
-<img src="https://github.com/identicons/member4.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/Mingyu7.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원</b><br/>
 <sub>웹 소켓 / 소셜 로그인</sub>
 </a>
@@ -177,16 +177,35 @@
 ---
 <br/><br/>
 
+## ⚡ 주요 기능
+
+| 기능 | 설명 |
+| :--- | :--- |
+| **🏠 홈** | 카테고리별 동아리 목록, 신규 모임 및 인기 게시글 표시 |
+| **🔐 인증** | 이메일/비밀번호 기반 로그인 및 회원가입, 자동 로그인 |
+| **🎪 동아리** | 동아리 생성, 검색, 가입 및 상세 정보 확인 |
+| **📅 모임** | 동아리 내 오프라인 모임 생성, 지도 기반 장소 지정 |
+| **💬 실시간 채팅** | STOMP + WebSocket 기반 실시간 채팅 및 친구 관리 |
+| **📝 게시판** | 자유게시판, 갤러리, 공지사항 기능 (글, 댓글, 반응) |
+| **👤 마이페이지** | 내 정보 수정, 가입한 동아리 및 작성 글 목록 확인 |
+
+<br/>
+
+---
+<br/><br/>
+
 ## 🏗️ 아키텍처
 
 ### 🛠️ 기술 스택
 
-- **Core**: `React`, `React Native`, `TypeScript`
-- **Navigation**: `React Navigation`
-- **State & Data**: `AsyncStorage`, `React Context API`
-- **Real-time**: `@stomp/stompjs`, `react-native-webview`
-- **Map & Location**: `react-native-maps`, `Google Maps Geocoding API`
-- **DevOps**: `ESLint`, `Prettier`
+| Category | Technologies |
+| :--- | :--- |
+| **Core** | `React`, `React Native`, `TypeScript` |
+| **Navigation** | `React Navigation` |
+| **State & Data** | `AsyncStorage`, `React Context API` |
+| **Real-time** | `@stomp/stompjs`, `react-native-webview` |
+| **Map & Location**| `react-native-maps`, `Google Maps Geocoding API` |
+| **DevOps** | `ESLint`, `Prettier` |
 
 <br/>
 
@@ -247,23 +266,6 @@ graph TD
 ---
 <br/><br/>
 
-## ⚡ 주요 기능
-
-| 기능 | 설명 |
-| :--- | :--- |
-| **🏠 홈** | 카테고리별 동아리 목록, 신규 모임 및 인기 게시글 표시 |
-| **🔐 인증** | 이메일/비밀번호 기반 로그인 및 회원가입, 자동 로그인 |
-| **🎪 동아리** | 동아리 생성, 검색, 가입 및 상세 정보 확인 |
-| **📅 모임** | 동아리 내 오프라인 모임 생성, 지도 기반 장소 지정 |
-| **💬 실시간 채팅** | STOMP + WebSocket 기반 실시간 채팅 및 친구 관리 |
-| **📝 게시판** | 자유게시판, 갤러리, 공지사항 기능 (글, 댓글, 반응) |
-| **👤 마이페이지** | 내 정보 수정, 가입한 동아리 및 작성 글 목록 확인 |
-
-<br/>
-
----
-<br/><br/>
-
 ## 🚀 시작하기
 
 <div align="center">
@@ -296,7 +298,7 @@ graph TD
 | 2️⃣ | `npm install` | 프로젝트에 필요한 의존성을 설치합니다. |
 | 3️⃣ | `cd ios && pod install && cd ..` | iOS 네이티브 모듈 의존성을 설치합니다. |
 | 4️⃣ | (에디터) `src/config.ts` | `BASE_URL`을 실제 백엔드 서버 주소로 변경합니다. |
-| 5️⃣ | `npm run ios` & `npm run android` | 개발 서버를 시작하고 앱을 시뮬레이터에서 실행합니다. |
+| 5️⃣ | `npm run ios` Or `npm run android` | 개발 서버를 시작하고 앱을 시뮬레이터에서 실행합니다. |
 
 <br/>
 
