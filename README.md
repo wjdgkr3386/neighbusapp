@@ -9,7 +9,7 @@
 
 <br/>
 
-[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=2E8B57&center=true&vCenter=true&multiline=true&width=600&height=100&lines=Neighborhood+%2B+Bus+%3D+NEIGHBUS;%EC%98%A8%EB%9D%BC%EC%9D%B8%EC%97%90%EC%84%9C+%EC%98%A4%ED%94%84%EB%9D%BC%EC%9D%B8%EC%9C%BC%EB%A1%9C;%ED%98%BC%EC%9E%90%EB%B3%B4%EB%8B%A4+%ED%95%A8%EA%BB%98)](https://git.io/typing-svg)
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=2E8B57&center=true&vCenter=true&multiline=true&width=600&height=100&lines=NEIGHBUS;Neighborhood%20(%EC%9D%B4%EC%9B%83)%20%2B%20Bus%20(%ED%86%B5%ED%95%98%EB%8B%A4);%EC%9D%B4%EC%9B%83%EA%B3%BC%20%ED%86%B5%ED%95%98%EB%8A%94%20%EB%94%B0%EB%9C%BB%ED%95%9C%20%EC%BB%A4%EB%AE%A4%EB%8B%88%ED%8B%B0)](https://git.io/typing-svg)
 
 <br/>
 
@@ -39,7 +39,7 @@
 
 <div align="center">
 
-| 🗓️ **개발 기간** | 👥 **팀 구성** | 🎯 **목표** | 📈 **결과** |
+| **개발 기간** | **팀 구성** | **목표** | **결과** |
 | :---: | :---: | :---: | :---: |
 | 2025.11 ~ 2025.12 | 4인 | 지역 커뮤니티 활성화 앱 | MVP 완성 |
 
@@ -261,13 +261,13 @@ graph TD
 
 아래의 개발 도구들이 미리 설치되어 있어야 합니다. 각 도구의 이름(파란색 글씨)을 클릭하면 공식 설치 페이지로 이동합니다.
 
-| Icon | Tool / Platform | Description | 설치 가이드 |
-| :---: | :--- | :--- | :--- |
-| 📦 | **[Node.js](https://nodejs.org/)** | `v18` 이상의 LTS 버전을<br/>권장합니다. | `nvm` 또는 공식 설치<br/>프로그램을 사용하세요. |
-| 👀 | **[Watchman](https://facebook.github.io/watchman/)** | 파일 변경을 감지하여<br/>앱을 자동으로 새로고침합니다. | macOS: `brew install watchman` |
-| 👩‍💻 | **[Xcode](https://developer.apple.com/xcode/)** | iOS 시뮬레이터를 실행하고<br/>앱을 빌드하는 데 필요합니다. | Mac App Store에서 설치하세요. |
-| 🤖 | **[Android Studio](https://developer.android.com/studio)** | Android 시뮬레이터를 실행하고<br/>앱을 빌드하는 데 필요합니다. | 공식 홈페이지에서<br/>다운로드하세요. |
-| 🍫 | **[CocoaPods](https://cocoapods.org/)** | iOS 네이티브 라이브러리<br/>의존성을 관리합니다. | `sudo gem install cocoapods` |
+| Tool / Platform | Description | 설치 가이드 |
+| :--- | :--- | :--- |
+| **[Node.js](https://nodejs.org/)** | `v18` 이상의 LTS 버전을<br/>권장합니다. | `nvm` 또는 공식 설치<br/>프로그램을 사용하세요. |
+| **[Watchman](https://facebook.github.io/watchman/)** | 파일 변경을 감지하여<br/>앱을 자동으로 새로고침합니다. | macOS: `brew install watchman` |
+| **[Xcode](https://developer.apple.com/xcode/)** | iOS 시뮬레이터를 실행하고<br/>앱을 빌드하는 데 필요합니다. | Mac App Store에서 설치하세요. |
+| **[Android Studio](https://developer.android.com/studio)** | Android 시뮬레이터를 실행하고<br/>앱을 빌드하는 데 필요합니다. | 공식 홈페이지에서<br/>다운로드하세요. |
+| **[CocoaPods](https://cocoapods.org/)** | iOS 네이티브 라이브러리<br/>의존성을 관리합니다. | `sudo gem install cocoapods` |
 
 > React Native 개발 환경 설정에 대한 더 자세한 내용은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하시면 큰 도움이 됩니다.
 
@@ -275,16 +275,51 @@ graph TD
 
 ### ⚡ 설치 및 실행
 
-프로젝트를 로컬 환경에 설정하고 실행하는 과정입니다. 터미널(명령 프롬프트)에서 아래 명령어를 순서대로 입력해주세요.
+프로젝트를 로컬 환경에 설정하고 실행하는 과정입니다. 터미널에서 아래 명령어를 순서대로 입력해주세요.
 
-| Step | Command | Description |
-| :---: | :--- | :--- |
-| 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | GitHub에서 프로젝트 소스코드를 내려받고, 해당 폴더로 이동합니다. |
-| 2️⃣ | `npm install` | `package.json` 파일에 명시된 모든 JavaScript 의존성을 설치합니다. |
-| 3️⃣ | `cd ios && pod install && cd ..` | iOS 프로젝트에 필요한 네이티브 모듈 의존성을 설치합니다. |
-| 4️⃣ | `src/config.ts` 파일 수정 | 코드 에디터에서 `src/config.ts` 파일을 열고, `BASE_URL` 값을 실제 백엔드 서버의 IP 주소나 도메인으로 변경합니다. |
-| 5️⃣ | `.env` 파일 생성 | 프로젝트 최상위 경로에 `.env` 파일을 생성하고, 아래 내용을 추가합니다.<br/>`GOOGLE_MAPS_API_KEY=발급받은_구글맵_API_키`<br/><br/>**참고:** `Google Cloud Console`에서 아래 두 가지 API를 활성화해야 합니다.<br/>- `Geocoding API`<br/>- `Maps SDK for Android` |
-| 6️⃣ | 앱 실행 | 아래 명령어를 사용하여 개발 서버를 시작하고 앱을 빌드합니다.<br/><br/>**Android:**<br/>`npx react-native run-android`<br/><br/>**iOS:**<br/>`npm run ios`<br/><br/>**개발 서버만 별도 실행:**<br/>`npx react-native start` |
+<br/>
+
+<table>
+  <thead>
+    <tr>
+      <th width="10%">Step</th>
+      <th width="35%">Command</th>
+      <th width="55%">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center">1</td>
+      <td><code>git clone https://github.com/your-username/neighbusapp-main.git</code><br/><code>cd neighbusapp-main</code></td>
+      <td>GitHub에서 프로젝트 소스코드를 내려받고,<br/>해당 폴더로 이동합니다.</td>
+    </tr>
+    <tr>
+      <td align="center">2</td>
+      <td><code>npm install</code></td>
+      <td><code>package.json</code>에 명시된<br/>모든 JavaScript 의존성을 설치합니다.</td>
+    </tr>
+    <tr>
+      <td align="center">3</td>
+      <td><code>cd ios && pod install && cd ..</code></td>
+      <td>iOS 프로젝트에 필요한<br/>네이티브 모듈 의존성을 설치합니다.</td>
+    </tr>
+    <tr>
+      <td align="center">4</td>
+      <td><code>src/config.ts</code> 파일 수정</td>
+      <td>코드 에디터에서 <code>src/config.ts</code> 파일을 열고,<br/><code>BASE_URL</code> 값을 실제 백엔드 서버의<br/>IP 주소나 도메인으로 변경합니다.</td>
+    </tr>
+    <tr>
+      <td align="center">5</td>
+      <td><code>.env</code> 파일 생성</td>
+      <td>프로젝트 최상위 경로에 <code>.env</code> 파일을 생성하고,<br/>아래 내용을 추가합니다.<br/><code>GOOGLE_MAPS_API_KEY=발급받은_구글맵_API_키</code><br/><br/><b>참고:</b> <code>Google Cloud Console</code>에서<br/>아래 두 가지 API를 활성화해야 합니다.<br/>- <code>Geocoding API</code><br/>- <code>Maps SDK for Android</code></td>
+    </tr>
+    <tr>
+      <td align="center">6</td>
+      <td>앱 실행</td>
+      <td>아래 명령어를 사용하여 개발 서버를 시작하고<br/>앱을 빌드합니다.<br/><br/><b>Android:</b><br/><code>npx react-native run-android</code><br/><br/><b>iOS:</b><br/><code>npm run ios</code><br/><br/><b>개발 서버만 별도 실행:</b><br/><code>npx react-native start</code></td>
+    </tr>
+  </tbody>
+</table>
 
 <br/>
 
