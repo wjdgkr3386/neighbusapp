@@ -103,20 +103,20 @@
 
 <table>
 <tr>
-<td align="center" width="33%">
+<td align="center">
 <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f91d/512.gif" width="96"/>
 <h3>🤝 연결</h3>
-<p>온라인과 오프라인을 잇는<br/>활발한 이웃 커뮤니티</p>
+<p>온라인에서 오프라인으로 확장되는 이웃 커뮤니티</p>
 </td>
-<td align="center" width="33%">
+<td align="center">
 <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Globe%20Showing%20Europe-Africa.png" width="96"/>
 <h3>📍 지역성</h3>
-<p>내 주변의 검증된<br/>장소와 모임 정보</p>
+<p>내 주변의 검증된 장소와 모임 정보</p>
 </td>
-<td align="center" width="33%">
+<td align="center">
 <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" width="96"/>
 <h3>📱 사용자 경험</h3>
-<p>네이티브 앱처럼 부드럽고<br/>직관적인 사용자 경험</p>
+<p>네이티브처럼 부드럽고 직관적인 사용성</p>
 </td>
 </tr>
 </table>
