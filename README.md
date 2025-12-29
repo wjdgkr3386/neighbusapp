@@ -19,17 +19,6 @@
 [![React Navigation](https://img.shields.io/badge/React_Navigation-6B52AE?style=flat-square&logo=react&logoColor=white)](https://reactnavigation.org/)
 [![Stomp.js](https://img.shields.io/badge/Stomp.js-F05033?style=flat-square&logo=git&logoColor=white)](https://stomp-js.github.io/)
 
-<br/><br/>
-
-[📖 프로젝트 개요](#-프로젝트-개요) • 
-[💡 핵심 가치](#-핵심-가치) •
-[🎯 기술적 도전](#-기술적-도전과-해결) • 
-[🏗️ 아키텍처](#️-아키텍처) • 
-[⚡ 주요 기능](#-주요-기능) • 
-[🚀 시작하기](#-시작하기)
-
-<br/>
-
 </div>
 
 ---
@@ -49,9 +38,13 @@
 
 <br/>
 
+<div align="center">
+
 | 🗓️ **개발 기간** | 👥 **팀 구성** | 🎯 **목표** | 📈 **결과** |
 | :---: | :---: | :---: | :---: |
 | 2025.10 ~ 2025.12 | 프론트엔드 (1인) | 지역 커뮤니티 활성화 앱 | MVP 완성 |
+
+</div>
 
 <br/>
 
@@ -74,7 +67,7 @@
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f310/512.gif" width="96"/>
+<img src="https://raw.githubusercontent.com/tabler/tabler-icons/main/icons/globe.svg" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
@@ -155,30 +148,48 @@
 
 ```mermaid
 graph TD
-    subgraph "Auth Stack"
-        Welcome --> Login & Signup
+    %% Define Styles
+    classDef stack fill:#f2f2f2,stroke:#333,stroke-width:2px,rx:8,ry:8;
+    classDef screen fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,rx:4,ry:4;
+    classDef entry fill:#ffcdd2,stroke:#c62828,stroke-width:2px,rx:20,ry:20;
+    classDef tabs fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,rx:8,ry:8;
+
+    %% Entry Point
+    Start(📱 App Entry) -->|Is Logged In?| IsLoggedIn{<fa:fa-sign-in-alt>};
+    class Start entry;
+
+    IsLoggedIn -- No --> AuthStack;
+    IsLoggedIn -- Yes --> MainStack;
+
+    %% Auth Flow
+    subgraph AuthStack [🔒 인증 스택]
+        direction LR
+        Welcome(👋 Welcome) --> Login(👤 Login);
+        Welcome --> Signup(📝 Signup);
     end
 
-    subgraph "Main App Stack"
-        Home --> ClubDetail
-        Home --> MeetingDetail
-        Home --> FreeBoard
-        Home --> Chat
-        Home --> MyPage
+    %% Main App Flow
+    subgraph MainStack [🏠 메인 앱]
+        direction TD
+        TabNav(Bottom Tab Navigator);
+        
+        subgraph Screens
+            direction TB
+            TabNav --> Home(🏠 홈);
+            TabNav --> Chat(💬 채팅);
+            TabNav --> MyPage(👤 마이페이지);
+
+            Home --> ClubDetail(🎪 동아리 상세);
+            Home --> MeetingDetail(📅 모임 상세);
+            Home --> FreeBoard(📋 게시판);
+            ClubDetail --> CreateMeeting(➕ 모임 생성);
+        end
     end
 
-    Start(App Entry) --> |isLoggedIn?| AuthStack{isLoggedIn}
-    AuthStack -- No --> Welcome
-    AuthStack -- Yes --> MainTab
-
-    subgraph "Main Tab Navigator"
-        MainTab(BottomNavBar)
-        MainTab -- 🏠 Home --> Home
-        MainTab -- 💬 Chat --> ChatScreen
-        MainTab -- 👤 MyPage --> MyPage
-    end
-    
-    style Start fill:#f9f,stroke:#333,stroke-width:2px
+    %% Apply styles
+    class AuthStack,MainStack stack;
+    class Welcome,Login,Signup,Home,Chat,MyPage,ClubDetail,MeetingDetail,FreeBoard,CreateMeeting screen;
+    class TabNav tabs;
 ```
 
 <br/>
