@@ -263,48 +263,6 @@ graph TD
 
 <br/>
 
----
-<br/><br/>
-
-## 🚀 시작하기
-
-<div align="center">
-
-### "5분 안에 로컬 환경에서 앱 실행하기"
-
-</div>
-
-<br/>
-
-### 📋 사전 요구사항
-
-| Icon | Tool / Platform | Description |
-| :---: | :--- | :--- |
-| 📦 | **[Node.js](https://nodejs.org/)** | LTS 버전 권장 |
-| 👀 | **[Watchman](https://facebook.github.io/watchman/)** | macOS 파일 시스템 감시 도구 |
-| 👩‍💻 | **[Xcode](https://developer.apple.com/xcode/)** | iOS 개발용 |
-| 🤖 | **[Android Studio](https://developer.android.com/studio)** | Android 개발용 |
-| 🍫 | **[CocoaPods](https://cocoapods.org/)** | iOS 의존성 관리자 |
-
-> React Native 개발 환경 설정에 대한 자세한 내용은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하세요.
-
-<br/>
-
-### ⚡ 설치 및 실행
-
-| Step | Command | Description |
-| :---: | :--- | :--- |
-| 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | 소스코드를 복제하고 디렉토리로 이동합니다. |
-| 2️⃣ | `npm install` | 프로젝트에 필요한 의존성을 설치합니다. |
-| 3️⃣ | `cd ios && pod install && cd ..` | iOS 네이티브 모듈 의존성을 설치합니다. |
-| 4️⃣ | (에디터) `src/config.ts` | `BASE_URL`을 실제 백엔드 서버 주소로 변경합니다. |
-| 5️⃣ | `npm run ios` Or `npm run android` | 개발 서버를 시작하고 앱을 시뮬레이터에서 실행합니다. |
-
-<br/>
-
----
-<br/>
-
 <div align="center">
 
 <br/>
