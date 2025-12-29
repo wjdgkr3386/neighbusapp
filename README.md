@@ -1,3 +1,4 @@
+<a id="top"></a>
 <div align="center">
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=250&section=header&text=NEIGHBUS%20APP&fontSize=80&animation=fadeIn&fontAlignY=38&desc=Connecting%20Neighbors,%20Building%20Community&descAlignY=55&descAlign=50" width="100%"/>
@@ -40,7 +41,7 @@
 
 | 🗓️ **개발 기간** | 👥 **팀 구성** | 🎯 **목표** | 📈 **결과** |
 | :---: | :---: | :---: | :---: |
-| 2025.10 ~ 2025.12 | 프론트엔드 (1인) | 지역 커뮤니티 활성화 앱 | MVP 완성 |
+| 2025.10 ~ 2025.12 | 4인 (풀스택) | 지역 커뮤니티 활성화 앱 | MVP 완성 |
 
 </div>
 
@@ -65,7 +66,7 @@
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4cd/512.gif" width="96"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f3d8/512.gif" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
@@ -257,6 +258,46 @@ graph TD
 <br/>
 
 ---
+<br/><br/>
+
+## 👥 팀 소개
+
+<div align="center">
+
+### "함께 성장하는 개발자들"
+
+<br/>
+
+<table>
+<tr>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member1.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 A</b><br/>
+<sub>인증/보안</sub><br/>
+</td>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member2.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 B</b><br/>
+<sub>동아리/모임</sub><br/>
+</td>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member3.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 C</b><br/>
+<sub>게시판/갤러리</sub><br/>
+</td>
+<td align="center" width="25%">
+<img src="https://github.com/identicons/member4.png" width="120" style="border-radius:50%"/><br/>
+<b>팀원 D</b><br/>
+<sub>관리자/통계</sub><br/>
+</td>
+</tr>
+</table>
+
+</div>
+
+<br/>
+
+---
 <br/>
 
 <div align="center">
@@ -273,6 +314,6 @@ graph TD
 
 <br/>
 
-[⬆️ Back to Top](#)
+[⬆️ Back to Top](#top)
 
 </div>
