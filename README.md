@@ -65,7 +65,6 @@
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlPSIjMDAwMDAwIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIHN0cm9rZT0ibm9uZSIgZD0iTTAgMGgyNHYyNEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik05IDExYTMgMyAwIDEgMCA2IDBhMyAzIDAgMCAwIC02IDAiIC8+PHBhdGggZD0iTTE3LjY1NyAxNi42NTdsLTQuMjQzIDQuMjQzYTIgMiAwIDAgMSAtMi44MjcgMGwtNC4yNDQgLTQuMjQzYTggOCAwIDEgMSAxMS4zMTQgMHoiIC8+PC9zdmc+" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
@@ -102,8 +101,6 @@
 | **💡 해결** | **`@stomp/stompjs`**와 **`WebView`**를 결합하여 문제를 해결했습니다.<br/> • `WebView` 내에서 WebSocket 연결 및 STOMP 프로토콜 처리를 전담하는 브릿지 생성.<br/> • React Native는 `WebView`와 `postMessage`로 통신하여 네이티브 의존성 최소화. |
 | **📊 결과** | 복잡한 네이티브 모듈 설정 없이 **안정적인 실시간 채팅 기능**을 구현하고, 앱의 부담을 줄였습니다. |
 
-<br/>
-
 ### 🔥 Challenge 2: 전역 상태 및 인증 관리
 
 | | |
@@ -111,8 +108,6 @@
 | **📌 과제** | 앱 전반에 걸쳐 사용자 로그인 상태를 일관되게 유지하고, 앱 재시작 시에도 자동 로그인 되어야 했습니다. |
 | **💡 해결** | **`React Context API`**와 **`AsyncStorage`**를 조합하여 상태 관리 시스템을 구축했습니다.<br/> • **UserContext**: 로그인 시 사용자 정보와 토큰을 Context에 저장하여 앱 전역에서 접근.<br/> • **AsyncStorage**: 인증 토큰을 디바이스에 영구 저장하여 앱 재시작 시 자동 로그인 구현. |
 | **📊 결과** | 외부 라이브러리 없이 React 내장 기능만으로 **효율적인 전역 인증 시스템**을 구축했습니다. |
-
-<br/>
 
 ### 🔥 Challenge 3: 외부 API 및 네이티브 기능 연동
 
@@ -238,33 +233,22 @@ graph TD
 
 ### ⚡ 빠른 시작
 
-1.  **프로젝트 클론**
+1.  **소스코드 복제 및 의존성 설치**
     ```bash
     git clone https://github.com/your-username/neighbusapp-main.git
     cd neighbusapp-main
-    ```
-
-2.  **의존성 설치**
-    ```bash
     npm install
     ```
 
-3.  **iOS 의존성 설치 (Pod)**
+2.  **iOS 추가 의존성 설치**
     ```bash
     cd ios && pod install && cd ..
     ```
 
-4.  **환경 설정**
-    `src/config.ts` 파일의 `BASE_URL`을 실제 실행 중인 백엔드 서버 주소로 변경하세요.
-    ```typescript
-    // 로컬 서버
-    export const BASE_URL: string = 'http://127.0.0.1:8090'; 
+3.  **백엔드 서버 주소 설정**
+    `src/config.ts` 파일의 `BASE_URL`을 실행 중인 백엔드 서버 주소로 변경합니다.
 
-    // Android 에뮬레이터 -> 로컬
-    // export const BASE_URL: string = 'http://10.0.2.2:8090';
-    ```
-
-5.  **앱 실행**
+4.  **앱 실행**
     ```bash
     # iOS
     npm run ios
