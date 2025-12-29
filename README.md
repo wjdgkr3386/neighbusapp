@@ -316,7 +316,7 @@ graph TD
     <tr>
       <td align="center">6</td>
       <td>앱 실행</td>
-      <td>아래 명령어를 사용하여 개발 서버를 시작하고<br/>앱을 빌드합니다.<br/><br/><b>Android:</b><br/><code>npx react-native run-android</code><br/><br/><b>iOS:</b><br/><code>npm run ios</code><br/><br/><b>개발 서버만 별도 실행:</b><br/><code>npx react-native start</code></td>
+      <td>아래 명령어를 사용하여 개발 서버를 시작하고<br/>앱을 빌드합니다.<br/><br/><b>Android:</b><br/><code>npx react-native run-android</code><br/><br/><b>iOS:</b><br/><code>npm run ios</code><br/><br/></td>
     </tr>
   </tbody>
 </table>
