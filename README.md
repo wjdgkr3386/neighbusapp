@@ -60,16 +60,17 @@
 <table>
 <tr>
 <td align="center" width="33%">
-<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f91d/512.gif" width="96"/>
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/People/Handshake.png" width="96"/>
 <h3>🤝 연결</h3>
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Round%20Pushpin.png" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
 <td align="center" width="33%">
-<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.gif" width="96"/>
+<img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" width="96"/>
 <h3>📱 사용자 경험</h3>
 <p>네이티브처럼 부드럽고<br/>직관적인 사용성</p>
 </td>
@@ -95,27 +96,37 @@
 
 ### 🔥 Challenge 1: 실시간 채팅 기능 구현
 
-| | |
-| :--- | :--- |
-| **📌 과제** | React Native 환경에서 안정적인 실시간 채팅을 구현해야 했습니다. |
-| **💡 해결** | **`@stomp/stompjs`**와 **`WebView`**를 결합하여 문제를 해결했습니다.<br/> • `WebView` 내에서 WebSocket 연결 및 STOMP 프로토콜 처리를 전담하는 브릿지 생성.<br/> • React Native는 `WebView`와 `postMessage`로 통신하여 네이티브 의존성 최소화. |
-| **📊 결과** | 복잡한 네이티브 모듈 설정 없이 **안정적인 실시간 채팅 기능**을 구현하고, 앱의 부담을 줄였습니다. |
+> **📌 과제**
+> React Native 환경에서 끊김 없는 안정적인 실시간 채팅을 구현해야 했습니다.
+
+- **💡 해결**: **`@stomp/stompjs`**와 **`WebView`**를 결합하여 하이브리드 방식으로 해결했습니다.
+  - `WebView` 내에서 WebSocket 연결 및 STOMP 프로토콜 처리를 전담하도록 브릿지 생성.
+  - React Native는 `WebView`와 `postMessage`로 통신하여 네이티브 의존성 최소화.
+- **📊 결과**: 복잡한 네이티브 모듈 설정 없이 **안정적인 실시간 채팅 기능**을 구현하고 앱의 리소스 부담을 줄였습니다.
+
+<br/>
 
 ### 🔥 Challenge 2: 전역 상태 및 인증 관리
 
-| | |
-| :--- | :--- |
-| **📌 과제** | 앱 전반에 걸쳐 사용자 로그인 상태를 일관되게 유지하고, 앱 재시작 시에도 자동 로그인 되어야 했습니다. |
-| **💡 해결** | **`React Context API`**와 **`AsyncStorage`**를 조합하여 상태 관리 시스템을 구축했습니다.<br/> • **UserContext**: 로그인 시 사용자 정보와 토큰을 Context에 저장하여 앱 전역에서 접근.<br/> • **AsyncStorage**: 인증 토큰을 디바이스에 영구 저장하여 앱 재시작 시 자동 로그인 구현. |
-| **📊 결과** | 외부 라이브러리 없이 React 내장 기능만으로 **효율적인 전역 인증 시스템**을 구축했습니다. |
+> **📌 과제**
+> 앱 전반에 걸쳐 사용자 로그인 상태를 일관되게 유지하고, 앱 재시작 시에도 자동 로그인이 되어야 했습니다.
+
+- **💡 해결**: **`React Context API`**와 **`AsyncStorage`**를 조합했습니다.
+  - **UserContext**: 로그인 시 사용자 정보와 토큰을 메모리에 저장하여 앱 전역에서 즉시 접근.
+  - **AsyncStorage**: 인증 토큰을 디바이스에 암호화하여 영구 저장, 앱 재시작 시 자동 복구.
+- **📊 결과**: 무거운 외부 라이브러리(Redux 등) 없이 React 내장 기능만으로 **가볍고 효율적인 인증 시스템**을 구축했습니다.
+
+<br/>
 
 ### 🔥 Challenge 3: 외부 API 및 네이티브 기능 연동
 
-| | |
-| :--- | :--- |
-| **📌 과제** | 모임 장소 선택 시, 지도에 표시된 좌표를 사용자가 이해하기 쉬운 주소로 변환해야 했습니다. |
-| **💡 해결** | **`react-native-maps`**와 **`Google Maps Geocoding API`**를 연동했습니다.<br/> • `react-native-maps`로 사용자가 선택한 위치의 위도/경도 좌표 획득.<br/> • 해당 좌표를 **Google Geocoding API**에 전송하여 실제 주소로 변환 후 화면에 표시. |
-| **📊 결과** | 단순 지도 표시를 넘어, **좌표-주소 변환 기능**으로 사용자가 모임 장소를 더 명확하게 설정할 수 있도록 개선했습니다. |
+> **📌 과제**
+> 모임 장소 선택 시, 지도에 표시된 좌표(위도/경도)를 사용자가 이해하기 쉬운 '주소 텍스트'로 변환해야 했습니다.
+
+- **💡 해결**: **`react-native-maps`**와 **`Google Maps Geocoding API`**를 연동했습니다.
+  - `react-native-maps` UI에서 사용자가 핀을 이동시켜 정확한 좌표 획득.
+  - 해당 좌표를 **Google Geocoding API**에 비동기 전송하여 도로명 주소로 변환.
+- **📊 결과**: 단순 지도 표시를 넘어, **역지오코딩(Reverse Geocoding)** 기능을 통해 사용자가 모임 장소를 직관적으로 설정할 수 있게 되었습니다.
 
 <br/>
 
