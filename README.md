@@ -73,7 +73,7 @@
 <a href="https://github.com/library-min" target="_blank">
 <img src="https://github.com/identicons/member3.png" width="120" style="border-radius:50%"/><br/>
 <b>팀원</b><br/>
-<sub>게시판/갤러리</sub>
+<sub>관리자 / UX/UI </sub>
 </a>
 </td>
 <td align="center" width="25%">
