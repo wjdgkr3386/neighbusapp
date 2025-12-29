@@ -67,7 +67,7 @@
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://raw.githubusercontent.com/tabler/tabler-icons/main/icons/globe.svg" width="96"/>
+<img src="https://upload.wikimedia.org/wikipedia/commons/7/7f/Globe_icon_2.svg" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
@@ -155,7 +155,7 @@ graph TD
     classDef tabs fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,rx:8,ry:8;
 
     %% Entry Point
-    Start(📱 App Entry) -->|Is Logged In?| IsLoggedIn{<fa:fa-sign-in-alt>};
+    Start("📱 App Entry") -->|Is Logged In?| IsLoggedIn{"🔑"};
     class Start entry;
 
     IsLoggedIn -- No --> AuthStack;
@@ -164,25 +164,25 @@ graph TD
     %% Auth Flow
     subgraph AuthStack [🔒 인증 스택]
         direction LR
-        Welcome(👋 Welcome) --> Login(👤 Login);
-        Welcome --> Signup(📝 Signup);
+        Welcome("👋 Welcome") --> Login("👤 Login");
+        Welcome --> Signup("📝 Signup");
     end
 
     %% Main App Flow
     subgraph MainStack [🏠 메인 앱]
         direction TD
-        TabNav(Bottom Tab Navigator);
+        TabNav("Bottom Tab Navigator");
         
         subgraph Screens
             direction TB
-            TabNav --> Home(🏠 홈);
-            TabNav --> Chat(💬 채팅);
-            TabNav --> MyPage(👤 마이페이지);
+            TabNav --> Home("🏠 홈");
+            TabNav --> Chat("💬 채팅");
+            TabNav --> MyPage("👤 마이페이지");
 
-            Home --> ClubDetail(🎪 동아리 상세);
-            Home --> MeetingDetail(📅 모임 상세);
-            Home --> FreeBoard(📋 게시판);
-            ClubDetail --> CreateMeeting(➕ 모임 생성);
+            Home --> ClubDetail("🎪 동아리 상세");
+            Home --> MeetingDetail("📅 모임 상세");
+            Home --> FreeBoard("📋 게시판");
+            ClubDetail --> CreateMeeting("➕ 모임 생성");
         end
     end
 
