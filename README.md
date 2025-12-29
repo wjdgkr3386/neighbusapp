@@ -101,17 +101,17 @@
 <tr>
 <td align="center" width="33%">
 <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f91d/512.gif" width="96"/>
-<h3>🤝 연결</h3>
+<h3>연결</h3>
 <p>온라인에서 오프라인으로 확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
 <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Globe%20Showing%20Europe-Africa.png" width="96"/>
-<h3>📍 지역성</h3>
+<h3>지역성</h3>
 <p>내 주변의 검증된 장소와 모임 정보</p>
 </td>
 <td align="center" width="33%">
 <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Travel%20and%20places/Rocket.png" width="96"/>
-<h3>📱 사용자 경험</h3>
+<h3>사용자 경험</h3>
 <p>네이티브처럼 부드럽고 직관적인 사용성</p>
 </td>
 </tr>
@@ -124,7 +124,7 @@
 ---
 <br/><br/>
 
-## 🎯 기술적 도전과 해결
+## 기술적 도전과 해결
 
 <div align="center">
 
@@ -134,7 +134,7 @@
 
 <br/>
 
-### 🔥 Challenge 1: 실시간 채팅 기능 구현
+###  Challenge 1: 실시간 채팅 기능 구현
 
 > **과제**
 > React Native 환경에서 끊김 없는 안정적인 실시간 채팅을 구현해야 했습니다.
@@ -146,7 +146,7 @@
 
 <br/>
 
-### 🔥 Challenge 2: 지오코딩(Geocoding) 적용
+###  Challenge 2: 지오코딩(Geocoding) 적용
 
 > **과제**
 > 모임 장소 선택 시, 지도에 표시된 좌표(위도/경도)를 사용자가 이해하기 쉬운 '주소 텍스트'로 변환해야 했습니다.
@@ -178,9 +178,9 @@
 ---
 <br/><br/>
 
-## 🏗️ 아키텍처
+##  아키텍처
 
-### 🛠️ 기술 스택
+###  기술 스택
 
 | Category | Technologies |
 | :--- | :--- |
@@ -193,7 +193,7 @@
 
 <br/>
 
-### 🧭 네비게이션 흐름
+###  네비게이션 흐름
 
 `React Navigation`을 사용하여 앱의 화면 전환을 체계적으로 관리합니다.
 
@@ -247,7 +247,7 @@ graph TD
 
 <br/>
 
-## 🚀 시작하기
+##  시작하기
 
 <div align="center">
 
