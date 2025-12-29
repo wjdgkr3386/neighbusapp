@@ -290,8 +290,8 @@ graph TD
   <tbody>
     <tr>
       <td align="center">1</td>
-      <td><code>git clone https://github.com/your-username/neighbusapp-main.git</code><br/><code>cd neighbusapp-main</code></td>
-      <td>GitHub에서 프로젝트 소스코드를 내려받고,<br/>해당 폴더로 이동합니다.</td>
+      <td><code>git clone </code><br/><code>cd neighbusapp-main</code></td>
+      <td>GitHub에서 프로젝트 소스코드를 받고 해당 폴더로 이동.</td>
     </tr>
     <tr>
       <td align="center">2</td>
