@@ -279,11 +279,11 @@ graph TD
 
 | Icon | Tool / Platform | Description | 설치 가이드 |
 | :---: | :--- | :--- | :--- |
-| 📦 | **[Node.js](https://nodejs.org/)** | `v18` 이상의 LTS 버전을 권장합니다. | `nvm` 또는 공식 설치 프로그램을 사용하세요. |
-| 👀 | **[Watchman](https://facebook.github.io/watchman/)** | 파일 변경을 감지하여 앱을 자동으로 새로고침합니다. | macOS: `brew install watchman` |
-| 👩‍💻 | **[Xcode](https://developer.apple.com/xcode/)** | iOS 시뮬레이터를 실행하고 앱을 빌드하는 데 필요합니다. | Mac App Store에서 설치하세요. |
-| 🤖 | **[Android Studio](https://developer.android.com/studio)** | Android 시뮬레이터를 실행하고 앱을 빌드하는 데 필요합니다. | 공식 홈페이지에서 다운로드하세요. |
-| 🍫 | **[CocoaPods](https://cocoapods.org/)** | iOS 네이티브 라이브러리 의존성을 관리합니다. | `sudo gem install cocoapods` |
+| 📦 | **[Node.js](https://nodejs.org/)** | `v18` 이상의 LTS 버전을<br/>권장합니다. | `nvm` 또는 공식 설치<br/>프로그램을 사용하세요. |
+| 👀 | **[Watchman](https://facebook.github.io/watchman/)** | 파일 변경을 감지하여<br/>앱을 자동으로 새로고침합니다. | macOS: `brew install watchman` |
+| 👩‍💻 | **[Xcode](https://developer.apple.com/xcode/)** | iOS 시뮬레이터를 실행하고<br/>앱을 빌드하는 데 필요합니다. | Mac App Store에서 설치하세요. |
+| 🤖 | **[Android Studio](https://developer.android.com/studio)** | Android 시뮬레이터를 실행하고<br/>앱을 빌드하는 데 필요합니다. | 공식 홈페이지에서<br/>다운로드하세요. |
+| 🍫 | **[CocoaPods](https://cocoapods.org/)** | iOS 네이티브 라이브러리<br/>의존성을 관리합니다. | `sudo gem install cocoapods` |
 
 > React Native 개발 환경 설정에 대한 더 자세한 내용은 [공식 문서](https://reactnative.dev/docs/environment-setup)를 참고하시면 큰 도움이 됩니다.
 
@@ -295,11 +295,11 @@ graph TD
 
 | Step | Command | Description |
 | :---: | :--- | :--- |
-| 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | GitHub에서 프로젝트 소스코드를 내려받고, 해당 폴더로 이동합니다. |
-| 2️⃣ | `npm install` | `package.json` 파일에 명시된 모든 JavaScript 라이브러리(의존성)를 `node_modules` 폴더에 설치합니다. |
-| 3️⃣ | `cd ios && pod install && cd ..` | iOS 프로젝트에 필요한 네이티브 모듈(카메라, 지도 등)의 의존성을 설치합니다. `ios` 폴더로 이동 후, `pod` 명령어를 실행하고 다시 상위 폴더로 돌아옵니다. |
-| 4️⃣ | `src/config.ts` 파일 수정 | 코드 에디터에서 `src/config.ts` 파일을 열고, `BASE_URL` 값을 실제 백엔드 서버의 IP 주소나 도메인으로 변경해야 합니다. <br/> 예: `const BASE_URL = 'http://127.0.0.1:8080';` |
-| 5️⃣ | `npm run ios`<br/>또는<br/>`npm run android` | Metro 번들러(개발 서버)를 시작하고, 연결된 시뮬레이터나 실제 기기에서 앱을 실행합니다. |
+| 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | GitHub에서 프로젝트 소스코드를<br/>내려받고, 해당 폴더로 이동합니다. |
+| 2️⃣ | `npm install` | `package.json` 파일에 명시된<br/>모든 JavaScript 라이브러리(의존성)를<br/>`node_modules` 폴더에 설치합니다. |
+| 3️⃣ | `cd ios && pod install && cd ..` | iOS 프로젝트에 필요한 네이티브 모듈<br/>(카메라, 지도 등)의 의존성을 설치합니다.<br/>`ios` 폴더 이동 후 `pod install`을 실행하고<br/>다시 상위 폴더로 돌아옵니다. |
+| 4️⃣ | `src/config.ts` 파일 수정 | 코드 에디터에서 `src/config.ts` 파일을 열고,<br/>`BASE_URL` 값을 실제 백엔드 서버의<br/>IP 주소나 도메인으로 변경해야 합니다. <br/> 예: `const BASE_URL = 'http://127.0.0.1:8080';` |
+| 5️⃣ | `npm run ios`<br/>또는<br/>`npm run android` | Metro 번들러(개발 서버)를 시작하고,<br/>연결된 시뮬레이터나 실제 기기에서<br/>앱을 실행합니다. |
 
 <br/>
 
