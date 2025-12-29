@@ -41,7 +41,7 @@
 
 | 🗓️ **개발 기간** | 👥 **팀 구성** | 🎯 **목표** | 📈 **결과** |
 | :---: | :---: | :---: | :---: |
-| 2025.10 ~ 2025.12 | 4인 (풀스택) | 지역 커뮤니티 활성화 앱 | MVP 완성 |
+| 2025.11 ~ 2025.12 | 4인 | 지역 커뮤니티 활성화 앱 | MVP 완성 |
 
 </div>
 
@@ -57,31 +57,27 @@
 <tr>
 <td align="center" width="25%">
 <a href="https://github.com/wjdgkr3386" target="_blank">
-<img src="https://github.com/wjdgkr3386.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/wjdgkr3386.png" width="120" style="border-radius:50%"/></a><br/>
 <b>팀장</b><br/>
 <sub>시큐리티 / AWS(S3)</sub>
-</a>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/happycat12389" target="_blank">
-<img src="https://github.com/happycat12389.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/happycat12389.png" width="120" style="border-radius:50%"/></a><br/>
 <b>팀원</b><br/>
 <sub>회원가입 / 모임</sub>
-</a>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/library-min" target="_blank">
-<img src="https://github.com/library-min.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/library-min.png" width="120" style="border-radius:50%"/></a><br/>
 <b>팀원</b><br/>
 <sub>관리자 / UX/UI </sub>
-</a>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/Mingyu7" target="_blank">
-<img src="https://github.com/Mingyu7.png" width="120" style="border-radius:50%"/><br/>
+<img src="https://github.com/Mingyu7.png" width="120" style="border-radius:50%"/></a><br/>
 <b>팀원</b><br/>
 <sub>웹 소켓 / 소셜 로그인</sub>
-</a>
 </td>
 </tr>
 </table>
@@ -150,19 +146,7 @@
 
 <br/>
 
-### 🔥 Challenge 2: 전역 상태 및 인증 관리
-
-> **과제**
-> 앱 전반에 걸쳐 사용자 로그인 상태를 일관되게 유지하고, 앱 재시작 시에도 자동 로그인이 되어야 했습니다.
-
-- **해결**: **`React Context API`**와 **`AsyncStorage`**를 조합했습니다.
-  - **UserContext**: 로그인 시 사용자 정보와 토큰을 메모리에 저장하여 앱 전역에서 즉시 접근.
-  - **AsyncStorage**: 인증 토큰을 디바이스에 암호화하여 영구 저장, 앱 재시작 시 자동 복구.
-- **결과**: 무거운 외부 라이브러리(Redux 등) 없이 React 내장 기능만으로 **가볍고 효율적인 인증 시스템**을 구축했습니다.
-
-<br/>
-
-### 🔥 Challenge 3: 외부 API 및 네이티브 기능 연동
+### 🔥 Challenge 2: 지오코딩(Geocoding) 적용
 
 > **과제**
 > 모임 장소 선택 시, 지도에 표시된 좌표(위도/경도)를 사용자가 이해하기 쉬운 '주소 텍스트'로 변환해야 했습니다.
@@ -170,7 +154,7 @@
 - **해결**: **`react-native-maps`**와 **`Google Maps Geocoding API`**를 연동했습니다.
   - `react-native-maps` UI에서 사용자가 핀을 이동시켜 정확한 좌표 획득.
   - 해당 좌표를 **Google Geocoding API**에 비동기 전송하여 도로명 주소로 변환.
-- **결과**: 단순 지도 표시를 넘어, **역지오코딩(Reverse Geocoding)** 기능을 통해 사용자가 모임 장소를 직관적으로 설정할 수 있게 되었습니다.
+- **결과**: 단순 지도 표시를 넘어, **지오코딩(Geocoding)** 기능을 통해 사용자가 모임 장소를 직관적으로 설정할 수 있게 되었습니다.
 
 <br/>
 
@@ -295,11 +279,12 @@ graph TD
 
 | Step | Command | Description |
 | :---: | :--- | :--- |
-| 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | GitHub에서 프로젝트 소스코드를<br/>내려받고, 해당 폴더로 이동합니다. |
-| 2️⃣ | `npm install` | `package.json` 파일에 명시된<br/>모든 JavaScript 라이브러리(의존성)를<br/>`node_modules` 폴더에 설치합니다. |
-| 3️⃣ | `cd ios && pod install && cd ..` | iOS 프로젝트에 필요한 네이티브 모듈<br/>(카메라, 지도 등)의 의존성을 설치합니다.<br/>`ios` 폴더 이동 후 `pod install`을 실행하고<br/>다시 상위 폴더로 돌아옵니다. |
-| 4️⃣ | `src/config.ts` 파일 수정 | 코드 에디터에서 `src/config.ts` 파일을 열고,<br/>`BASE_URL` 값을 실제 백엔드 서버의<br/>IP 주소나 도메인으로 변경해야 합니다. <br/> 예: `const BASE_URL = 'http://127.0.0.1:8080';` |
-| 5️⃣ | `npm run ios`<br/>또는<br/>`npm run android` | Metro 번들러(개발 서버)를 시작하고,<br/>연결된 시뮬레이터나 실제 기기에서<br/>앱을 실행합니다. |
+| 1️⃣ | `git clone https://github.com/your-username/neighbusapp-main.git`<br/>`cd neighbusapp-main` | GitHub에서 프로젝트 소스코드를 내려받고, 해당 폴더로 이동합니다. |
+| 2️⃣ | `npm install` | `package.json` 파일에 명시된 모든 JavaScript 의존성을 설치합니다. |
+| 3️⃣ | `cd ios && pod install && cd ..` | iOS 프로젝트에 필요한 네이티브 모듈 의존성을 설치합니다. |
+| 4️⃣ | `src/config.ts` 파일 수정 | 코드 에디터에서 `src/config.ts` 파일을 열고, `BASE_URL` 값을 실제 백엔드 서버의 IP 주소나 도메인으로 변경합니다. |
+| 5️⃣ | `.env` 파일 생성 | 프로젝트 최상위 경로에 `.env` 파일을 생성하고, 아래 내용을 추가합니다.<br/>`GOOGLE_MAPS_API_KEY=발급받은_구글맵_API_키`<br/><br/>**참고:** `Google Cloud Console`에서 아래 두 가지 API를 활성화해야 합니다.<br/>- `Geocoding API`<br/>- `Maps SDK for Android` |
+| 6️⃣ | 앱 실행 | 아래 명령어를 사용하여 개발 서버를 시작하고 앱을 빌드합니다.<br/><br/>**Android:**<br/>`npx react-native run-android`<br/><br/>**iOS:**<br/>`npm run ios`<br/><br/>**개발 서버만 별도 실행:**<br/>`npx react-native start` |
 
 <br/>
 
