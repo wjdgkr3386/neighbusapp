@@ -58,25 +58,25 @@
 <td align="center" width="25%">
 <a href="https://github.com/wjdgkr3386" target="_blank">
 <img src="https://github.com/wjdgkr3386.png" width="120" style="border-radius:50%"/></a><br/>
-<b>팀장</b><br/>
+<b>김정학</b><br/>
 <sub>시큐리티 / AWS(S3)</sub>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/happycat12389" target="_blank">
 <img src="https://github.com/happycat12389.png" width="120" style="border-radius:50%"/></a><br/>
-<b>팀원</b><br/>
+<b>김기현</b><br/>
 <sub>회원가입 / 모임</sub>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/library-min" target="_blank">
 <img src="https://github.com/library-min.png" width="120" style="border-radius:50%"/></a><br/>
-<b>팀원</b><br/>
+<b>서재민</b><br/>
 <sub>관리자 / UX/UI </sub>
 </td>
 <td align="center" width="25%">
 <a href="https://github.com/Mingyu7" target="_blank">
 <img src="https://github.com/Mingyu7.png" width="120" style="border-radius:50%"/></a><br/>
-<b>팀원</b><br/>
+<b>이민규</b><br/>
 <sub>웹 소켓 / 소셜 로그인</sub>
 </td>
 </tr>
