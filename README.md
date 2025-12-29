@@ -1,6 +1,5 @@
 <div align="center">
 
-<!-- 애니메이션 배너 -->
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=250&section=header&text=NEIGHBUS%20APP&fontSize=80&animation=fadeIn&fontAlignY=38&desc=Connecting%20Neighbors,%20Building%20Community&descAlignY=55&descAlign=50" width="100%"/>
 
 <br/>
@@ -9,7 +8,6 @@
 
 <br/>
 
-<!-- 타이핑 애니메이션 -->
 [![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&duration=3000&pause=1000&color=2E8B57&center=true&vCenter=true&multiline=true&width=600&height=100&lines=Neighborhood+%2B+Bus+%3D+NEIGHBUS;%EC%98%A8%EB%9D%BC%EC%9D%B8%EC%97%90%EC%84%9C+%EC%98%A4%ED%94%84%EB%9D%BC%EC%9D%B8%EC%9C%BC%EB%A1%9C;%ED%98%BC%EC%9E%90%EB%B3%B4%EB%8B%A4+%ED%95%A8%EA%BB%98)](https://git.io/typing-svg)
 
 <br/>
@@ -67,7 +65,7 @@
 <p>온라인에서 오프라인으로<br/>확장되는 이웃 커뮤니티</p>
 </td>
 <td align="center" width="33%">
-<img src="https://upload.wikimedia.org/wikipedia/commons/7/7f/Globe_icon_2.svg" width="96"/>
+<img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4cd/512.gif" width="96"/>
 <h3>📍 지역성</h3>
 <p>내 주변의 검증된<br/>장소와 모임 정보</p>
 </td>
@@ -144,52 +142,54 @@
 
 ### 🧭 네비게이션 흐름
 
-`React Navigation`을 사용하여 앱의 화면 전환을 관리합니다.
+`React Navigation`을 사용하여 앱의 화면 전환을 체계적으로 관리합니다.
 
 ```mermaid
 graph TD
-    %% Define Styles
-    classDef stack fill:#f2f2f2,stroke:#333,stroke-width:2px,rx:8,ry:8;
-    classDef screen fill:#e1f5fe,stroke:#0277bd,stroke-width:2px,rx:4,ry:4;
-    classDef entry fill:#ffcdd2,stroke:#c62828,stroke-width:2px,rx:20,ry:20;
-    classDef tabs fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,rx:8,ry:8;
+    %% 스타일 정의 (파스텔 톤)
+    classDef entry fill:#333,stroke:#333,stroke-width:2px,color:#fff,rx:10,ry:10;
+    classDef auth fill:#ffcdd2,stroke:#e57373,stroke-width:2px,color:#333,rx:5,ry:5;
+    classDef main fill:#bbdefb,stroke:#64b5f6,stroke-width:2px,color:#333,rx:5,ry:5;
+    classDef tab fill:#c8e6c9,stroke:#81c784,stroke-width:2px,color:#333,rx:5,ry:5;
+    classDef sub fill:#f5f5f5,stroke:#bdbdbd,stroke-width:2px,color:#333,rx:5,ry:5,stroke-dasharray: 5 5;
 
-    %% Entry Point
-    Start("📱 App Entry") -->|Is Logged In?| IsLoggedIn{"🔑"};
-    class Start entry;
+    %% 시작점
+    Start((📱 App Start)):::entry
+    
+    %% 로그인 체크
+    Start --> Check{로그인 여부}
+    
+    Check -- No --> AuthStack
+    Check -- Yes --> MainTab
 
-    IsLoggedIn -- No --> AuthStack;
-    IsLoggedIn -- Yes --> MainStack;
-
-    %% Auth Flow
-    subgraph AuthStack [🔒 인증 스택]
-        direction LR
-        Welcome("👋 Welcome") --> Login("👤 Login");
-        Welcome --> Signup("📝 Signup");
+    %% Auth Stack
+    subgraph Auth_Flow [🔒 Auth Stack]
+        direction TB
+        AuthStack[Auth Navigator]:::auth
+        AuthStack --> Welcome[👋 Welcome]:::auth
+        AuthStack --> Login[👤 Login]:::auth
+        AuthStack --> Signup[📝 Signup]:::auth
     end
 
-    %% Main App Flow
-    subgraph MainStack [🏠 메인 앱]
-        direction TD
-        TabNav("Bottom Tab Navigator");
+    %% Main Tab
+    subgraph Main_Flow [🏠 Main App]
+        direction TB
+        MainTab[Bottom Tab Navigator]:::main
         
-        subgraph Screens
-            direction TB
-            TabNav --> Home("🏠 홈");
-            TabNav --> Chat("💬 채팅");
-            TabNav --> MyPage("👤 마이페이지");
+        %% 탭 연결
+        MainTab --> HomeTap[🏠 홈 탭]:::tab
+        MainTab --> ChatTab[💬 채팅 탭]:::tab
+        MainTab --> MyTab[👤 마이페이지 탭]:::tab
 
-            Home --> ClubDetail("🎪 동아리 상세");
-            Home --> MeetingDetail("📅 모임 상세");
-            Home --> FreeBoard("📋 게시판");
-            ClubDetail --> CreateMeeting("➕ 모임 생성");
-        end
+        %% 홈 탭 상세
+        HomeTap --> ClubDetail[🎪 동아리 상세]:::sub
+        HomeTap --> MeetingDetail[📅 모임 상세]:::sub
+        HomeTap --> FreeBoard[📋 게시판]:::sub
+        ClubDetail -.-> CreateMeeting[➕ 모임 생성]:::sub
     end
 
-    %% Apply styles
-    class AuthStack,MainStack stack;
-    class Welcome,Login,Signup,Home,Chat,MyPage,ClubDetail,MeetingDetail,FreeBoard,CreateMeeting screen;
-    class TabNav tabs;
+    %% 연결선 스타일
+    linkStyle default stroke:#666,stroke-width:2px;
 ```
 
 <br/>
@@ -259,7 +259,7 @@ graph TD
     ```typescript
     // 로컬 서버
     export const BASE_URL: string = 'http://127.0.0.1:8090'; 
-    
+
     // Android 에뮬레이터 -> 로컬
     // export const BASE_URL: string = 'http://10.0.2.2:8090';
     ```
