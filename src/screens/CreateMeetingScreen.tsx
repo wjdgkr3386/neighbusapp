@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DatePicker from 'react-native-date-picker';
 import MapView, { PROVIDER_GOOGLE, Marker, MapPressEvent } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Config from 'react-native-config';
 import type { RootStackScreenProps } from '../../App';
 import { BASE_URL } from '../config';
 import { useUser } from '../context/UserContext';
@@ -27,7 +28,8 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
   const [date, setDate] = useState(new Date());
   const [open, setOpen] = useState(false); // DatePicker 열림 상태
   
-  const [locationDetail, setLocationDetail] = useState('');
+  const [address, setAddress] = useState(''); // 도로명 주소
+  const [locationDetail, setLocationDetail] = useState(''); // 상세 주소
   const [memberLimit, setMemberLimit] = useState('');
   const [description, setDescription] = useState('');
 
@@ -43,11 +45,42 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
     longitudeDelta: 0.01,
   });
 
-  // 지도 클릭 핸들러
-  const handleMapPress = (e: MapPressEvent) => {
+  // 지도 클릭 핸들러 (역지오코딩 추가)
+  const handleMapPress = async (e: MapPressEvent) => {
     const coordinate = e.nativeEvent.coordinate;
     setSelectedLocation(coordinate);
-    console.log('Selected Location:', coordinate);
+    console.log('Selected Coordinate:', coordinate);
+
+    try {
+      const apiKey = Config.GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        console.error('Google Maps API Key is missing in Config');
+        return;
+      }
+
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coordinate.latitude},${coordinate.longitude}&key=${apiKey}&language=ko`
+      );
+      const data = await response.json();
+
+      if (data.status === 'OK' && data.results.length > 0) {
+        const formattedAddress = data.results[0].formatted_address;
+        setAddress(formattedAddress);
+        console.log('Fetched Address:', formattedAddress);
+      } else {
+        console.warn('Geocoding Status:', data.status);
+        const errorDetail = data.error_message || '상세 사유 없음';
+        
+        // 구글에서 보내주는 구체적인 거절 사유를 팝업으로 표시
+        Alert.alert(
+          '주소 조회 실패',
+          `사유: ${data.status}\n메시지: ${errorDetail}`
+        );
+      }
+    } catch (error) {
+      console.error('Reverse Geocoding Error:', error);
+      Alert.alert('오류', '주소를 가져오는 중 네트워크 오류가 발생했습니다.');
+    }
   };
 
   const handleCreateMeeting = async () => {
@@ -61,7 +94,6 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
       return;
     }
 
-    // 날짜는 기본값이 현재 시간이므로 별도 체크 불필요하지만, 과거 시간 체크 등은 추가 가능
     const now = new Date();
     if (date < now) {
       Alert.alert('입력 오류', '모임 시간은 현재 시간 이후로 설정해주세요.');
@@ -79,7 +111,7 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
       return;
     }
 
-    if (!selectedLocation) {
+    if (!selectedLocation || !address) {
       Alert.alert('입력 오류', '지도에서 모임 장소를 선택해주세요.');
       return;
     }
@@ -90,7 +122,6 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
     }
 
     try {
-      // Date 객체를 "YYYY-MM-DD HH:mm:ss" 형식 문자열로 변환
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');
@@ -100,11 +131,14 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
       
       const meetingDateStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
+      // 도로명 주소와 상세 주소 결합
+      const fullAddress = `${address} (${locationDetail.trim()})`;
+
       const payload = {
         clubId: parseInt(clubId, 10), 
         title: summary,
         content: description,
-        address: locationDetail,
+        address: fullAddress,
         maxUser: parseInt(memberLimit, 10),
         meetingDate: meetingDateStr,
         latitude: selectedLocation.latitude,
@@ -223,8 +257,6 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
           />
         </View>
 
-        {/* 기존 시간 입력 필드 제거됨 */}
-
         <View style={styles.formGroup}>
           <Text style={styles.label}>장소</Text>
           <View style={styles.mapWrapper}>
@@ -243,13 +275,11 @@ const CreateMeetingScreen: React.FC<Props> = ({ route, navigation }) => {
             </MapView>
           </View>
 
-          {selectedLocation && (
-            <View style={styles.locationInfo}>
-              <Text style={styles.locationText}>
-                {`위도: ${selectedLocation.latitude.toFixed(6)}, 경도: ${selectedLocation.longitude.toFixed(6)}`}
-              </Text>
-            </View>
-          )}
+          <View style={[styles.input, { marginTop: 12, backgroundColor: '#F0F0F0', minHeight: 50 }]}>
+            <Text style={[styles.inputText, !address && { color: '#999' }]}>
+              {address || '지도에서 위치를 선택하면 주소가 나타납니다'}
+            </Text>
+          </View>
 
           <TextInput
             style={[styles.input, { marginTop: 12 }]}

@@ -54,6 +54,15 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const [error, setError] = useState<string | null>(null);
   const [newCommentText, setNewCommentText] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [reactionInfo, setReactionInfo] = useState<{ 
+    likeCount: number; 
+    dislikeCount: number; 
+    userReaction: number | null 
+  }>({ 
+    likeCount: 0, 
+    dislikeCount: 0,
+    userReaction: null 
+  });
 
   const fetchGalleryDetail = useCallback(async () => {
     // We don't want to show the main loading spinner for a refresh
@@ -110,10 +119,16 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           CONTENT: contentCleaned,
           IMAGES: gm.IMAGES || [],
           VIEW_COUNT: gm.VIEW_COUNT,
-          likes: reaction?.likeCount || 0,
+          likes: reaction?.likeCount || 0, // Keep for backward compatibility if needed, but rely on reactionInfo
           avatarUrl: gm.WRITER_IMAGE || 'https://i.pravatar.cc/150?u=post-author', // Use WRITER_IMAGE for post author, else placeholder
           WRITER_IMAGE: gm.WRITER_IMAGE, // Store actual image path
           COMMENTS: mappedComments, // Use mapped comments
+        });
+
+        setReactionInfo({
+          likeCount: reaction?.likeCount || 0,
+          dislikeCount: reaction?.dislikeCount || 0,
+          userReaction: reaction?.userReaction,
         });
       } else {
         setError(responseData.message || '게시글을 찾을 수 없습니다.');
@@ -129,6 +144,91 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   useEffect(() => {
     fetchGalleryDetail();
   }, [postId, token]); 
+
+  const toggleReaction = async (type: 1 | 2) => {
+    if (!token) {
+      Alert.alert('알림', '로그인이 필요합니다.');
+      return;
+    }
+
+    const previousReaction = reactionInfo.userReaction;
+    const previousLikeCount = reactionInfo.likeCount;
+    const previousDislikeCount = reactionInfo.dislikeCount;
+    
+    // Optimistic Update 로직
+    let newLikeCount = previousLikeCount;
+    let newDislikeCount = previousDislikeCount;
+    let newUserReaction: number | null = type;
+
+    if (previousReaction === type) {
+      // 취소 (Delete)
+      newUserReaction = null;
+      if (type === 1) newLikeCount--;
+      else newDislikeCount--;
+    } else {
+      // 새로운 반응 또는 변경
+      if (type === 1) {
+        newLikeCount++;
+        if (previousReaction === 2) newDislikeCount--;
+      } else {
+        newDislikeCount++;
+        if (previousReaction === 1) newLikeCount--;
+      }
+    }
+
+    setReactionInfo({
+      likeCount: newLikeCount,
+      dislikeCount: newDislikeCount,
+      userReaction: newUserReaction,
+    });
+
+    try {
+      let url = '';
+      let method = '';
+      const body: any = { galleryId: parseInt(postId, 10) }; // Use galleryId for Gallery API
+
+      if (previousReaction === type) {
+        url = `${BASE_URL}/api/mobile/gallery/reaction/delete`;
+        method = 'DELETE';
+      } else if (previousReaction) {
+        url = `${BASE_URL}/api/mobile/gallery/reaction/update`;
+        method = 'PUT';
+        body.reactionType = type;
+      } else {
+        url = `${BASE_URL}/api/mobile/gallery/reaction/insert`;
+        method = 'POST';
+        body.reactionType = type;
+      }
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (data.likeCount !== undefined) {
+          setReactionInfo({
+              likeCount: data.likeCount,
+              dislikeCount: data.dislikeCount || 0,
+              userReaction: data.userReaction
+          });
+      }
+
+    } catch (error) {
+      console.error('Reaction error:', error);
+      setReactionInfo({
+        likeCount: previousLikeCount,
+        dislikeCount: previousDislikeCount,
+        userReaction: previousReaction,
+      });
+      Alert.alert('오류', '반응 처리 중 오류가 발생했습니다.');
+    }
+  };
 
   const handleAddComment = async () => {
     if (!newCommentText.trim() || !galleryPost || !user) {
@@ -208,8 +308,6 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       );
     }
 
-    const firstImageUrl = galleryPost.IMAGES[0]?.IMG || 'https://via.placeholder.com/400/D2B48C/FFFFFF?text=No+Image';
-
     return (
       <ScrollView style={styles.container}>
         {/* Post Header */}
@@ -226,10 +324,14 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           <Text style={styles.postTitle}>{galleryPost.TITLE}</Text>
         </View>
 
-        {/* Image */}
-        {firstImageUrl && (
-          <Image source={{ uri: firstImageUrl }} style={styles.postImage} />
-        )}
+        {/* Images */}
+        {galleryPost.IMAGES.map((imgObj) => (
+          <Image 
+            key={imgObj.ID} 
+            source={{ uri: imgObj.IMG }} 
+            style={styles.postImage} 
+          />
+        ))}
 
         {/* Post Content */}
         <View style={styles.contentWrapper}>
@@ -238,17 +340,17 @@ const GalleryDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
         {/* Action Bar */}
         <View style={styles.actionBar}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionIcon}>❤️</Text>
-            <Text style={styles.actionText}>좋아요 {galleryPost.likes}</Text>
+          <TouchableOpacity style={styles.actionButton} onPress={() => toggleReaction(1)}>
+            <Text style={styles.actionIcon}>{reactionInfo.userReaction === 1 ? '❤️' : '🤍'}</Text>
+            <Text style={styles.actionText}>좋아요 {reactionInfo.likeCount}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton} onPress={() => toggleReaction(2)}>
+            <Text style={styles.actionIcon}>{reactionInfo.userReaction === 2 ? '👎' : '👎🏻'}</Text>
+            <Text style={styles.actionText}>싫어요 {reactionInfo.dislikeCount}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
             <Text style={styles.actionIcon}>💬</Text>
             <Text style={styles.actionText}>댓글 {galleryPost.COMMENTS?.length || 0}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionIcon}>🔖</Text>
-            <Text style={styles.actionText}>저장</Text>
           </TouchableOpacity>
         </View>
 
@@ -376,8 +478,10 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 300,
-    resizeMode: 'cover',
+    height: 450, // 높이를 키워서 더 크게 보이게 함
+    resizeMode: 'contain', // 이미지가 잘리지 않게 조정
+    backgroundColor: '#F0F0F0', // 이미지가 비는 공간을 채울 배경색
+    marginBottom: 10,
   },
   postContent: {
     fontSize: 16,

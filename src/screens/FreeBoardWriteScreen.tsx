@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,13 @@ import {
   Modal,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { actions, RichEditor, RichToolbar } from 'react-native-pell-rich-editor';
+import { launchImageLibrary } from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { RootStackScreenProps } from '../../App';
 import theme from '../styles/theme';
 import { useUser } from '../context/UserContext';
@@ -23,30 +28,45 @@ type Club = {
   clubName: string;
 };
 
+const FONT_SIZES = [
+  { label: '작게', value: '3' },
+  { label: '보통', value: '4' },
+  { label: '크게', value: '5' },
+];
+
+const COLORS = [
+  '#000000', '#EE2323', '#F29B0E', '#209E2F', '#217AF4', '#A67C52', '#FFFFFF'
+];
+
+interface RichEditorExtended extends RichEditor {
+  focusContentEditor: () => void;
+}
+
 const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
   const { token } = useUser();
+  const richText = useRef<RichEditorExtended>(null);
+  
   const [clubs, setClubs] = useState<Club[]>([]);
   const [selectedClubId, setSelectedClubId] = useState<number | null>(null);
   const [selectedClubName, setSelectedClubName] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  
   const [showClubModal, setShowClubModal] = useState(false);
+  const [showColorModal, setShowColorModal] = useState(false);
+  const [showSizeModal, setShowSizeModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // 내 동아리 목록 가져오기
   useEffect(() => {
     const fetchMyClubs = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/mobile/club/my`, {
+        const response = await fetch(`${BASE_URL}/api/mobile/mypage/info`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const data = await response.json();
-        if (data.success && Array.isArray(data.data)) {
-           // 데이터 구조에 따라 수정 필요 (예: data.clubList 등)
-           // 여기서는 data.data가 Club 리스트라고 가정하거나, data.clubList 확인
-           setClubs(data.data);
-        } else if (data.clubList) {
-            setClubs(data.clubList);
+        const result = await response.json();
+        if (response.ok && Array.isArray(result.myClubs)) {
+          setClubs(result.myClubs);
         }
       } catch (error) {
         console.error('Failed to fetch clubs:', error);
@@ -71,6 +91,9 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const handleSave = async () => {
+    // Editor에서 최신 컨텐츠 가져오기
+    const html = await richText.current?.getContentHtml();
+    
     if (!selectedClubId) {
       Alert.alert('알림', '동아리를 선택해주세요.');
       return;
@@ -79,7 +102,7 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
       Alert.alert('알림', '제목을 입력해주세요.');
       return;
     }
-    if (!content.trim()) {
+    if (!html || html.trim() === '' || html === '<br>') {
       Alert.alert('알림', '내용을 입력해주세요.');
       return;
     }
@@ -95,7 +118,7 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
         body: JSON.stringify({
           clubId: selectedClubId,
           title: title,
-          content: content,
+          content: html,
         }),
       });
 
@@ -116,6 +139,26 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  const onPressAddImage = useCallback(() => {
+    launchImageLibrary({ 
+      mediaType: 'photo', 
+      quality: 0.5, // 이미지 용량 최적화를 위해 퀄리티 조절
+      includeBase64: true // DB 저장을 위해 Base64 포함
+    }, async (response) => {
+      if (response.didCancel || !response.assets || response.assets.length === 0) return;
+      
+      const asset = response.assets[0];
+      
+      if (asset.base64) {
+        // 이미지를 Base64 데이터 URI 형식으로 에디터에 직접 삽입
+        const dataUri = `data:${asset.type};base64,${asset.base64}`;
+        richText.current?.insertImage(dataUri);
+      } else {
+        Alert.alert('오류', '이미지 데이터를 읽어오는데 실패했습니다.');
+      }
+    });
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -131,88 +174,150 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
           )}
         </TouchableOpacity>
       </View>
-      
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        {/* 상단 입력 그룹 */}
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
         <View style={styles.topSection}>
-          {/* 동아리 선택 */}
           <TouchableOpacity
             style={styles.categoryButton}
             onPress={() => setShowClubModal(true)}
-            activeOpacity={0.7}
           >
             <Text style={[styles.categoryButtonText, !selectedClubId && styles.placeholder]}>
               {selectedClubName || '동아리 선택'}
             </Text>
-            <Text style={styles.dropdownIcon}>▼</Text>
+            <Icon name="chevron-down" size={16} color={theme.colors.textSecondary} />
           </TouchableOpacity>
 
-          {/* 제목 입력 */}
           <TextInput
             style={styles.titleInput}
-            placeholder="제목"
+            placeholder="제목을 입력하세요"
             placeholderTextColor={theme.colors.textLight}
             value={title}
             onChangeText={setTitle}
           />
         </View>
 
-        {/* 내용 입력 */}
-        <TextInput
-          style={styles.contentInput}
-          placeholder="내용을 입력해주세요."
-          placeholderTextColor={theme.colors.textLight}
-          value={content}
-          onChangeText={setContent}
-          multiline
-          textAlignVertical="top"
+        <RichToolbar
+          editor={richText}
+          actions={[
+            actions.insertImage,
+            actions.setBold,
+            actions.setUnderline,
+            actions.alignLeft,
+            actions.alignCenter,
+            actions.alignRight,
+            'foreColor',
+            'fontSize',
+            actions.insertLine,
+          ]}
+          iconMap={{
+            foreColor: ({ tintColor }: any) => <Icon name="palette" size={20} color={tintColor} />,
+            fontSize: ({ tintColor }: any) => <Icon name="format-size" size={20} color={tintColor} />,
+          }}
+          foreColor={() => {
+            richText.current?.focusContentEditor();
+            setShowColorModal(true);
+            setShowSizeModal(false); // Close other picker
+          }}
+          fontSize={() => {
+            richText.current?.focusContentEditor();
+            setShowSizeModal(true);
+            setShowColorModal(false); // Close other picker
+          }}
+          onPressAddImage={onPressAddImage}
+          selectedIconTint={theme.colors.primary}
+          iconTint={theme.colors.textSecondary}
+          style={styles.toolbar}
         />
-      </ScrollView>
+
+        <View style={styles.editorWrapper}>
+          {/* 선택창을 에디터 상단에 배치하여 키보드/선택메뉴 간섭 방지 */}
+          {showColorModal && (
+            <View style={styles.inlinePickerContainer}>
+              <View style={styles.pickerHeader}>
+                <Text style={styles.pickerTitle}>색상 선택</Text>
+                <TouchableOpacity onPress={() => setShowColorModal(false)}>
+                  <Icon name="close" size={20} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.colorGrid}>
+                {COLORS.map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[styles.colorOption, { backgroundColor: color }]}
+                    onPress={() => {
+                      richText.current?.setForeColor(color);
+                      setShowColorModal(false);
+                    }}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+
+          {showSizeModal && (
+            <View style={styles.inlinePickerContainer}>
+              <View style={styles.pickerHeader}>
+                <Text style={styles.pickerTitle}>글꼴 크기</Text>
+                <TouchableOpacity onPress={() => setShowSizeModal(false)}>
+                  <Icon name="close" size={20} color={theme.colors.textSecondary} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sizeList}>
+                {FONT_SIZES.map(size => (
+                  <TouchableOpacity
+                    key={size.value}
+                    style={styles.sizeOption}
+                    onPress={() => {
+                      richText.current?.setFontSize(size.value as any);
+                      setShowSizeModal(false);
+                    }}
+                  >
+                    <Text style={styles.sizeOptionText}>{size.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          <RichEditor
+            ref={richText}
+            placeholder="내용을 입력하세요."
+            onChange={setContent}
+            initialHeight={400}
+            style={styles.editor}
+            editorStyle={{
+              backgroundColor: theme.colors.white,
+              color: theme.colors.textPrimary,
+              placeholderColor: theme.colors.textLight,
+              contentCSSText: 'font-family: sans-serif; font-size: 16px; line-height: 1.6;',
+            }}
+          />
+        </View>
+      </KeyboardAvoidingView>
 
       {/* 동아리 선택 모달 */}
-      <Modal
-        visible={showClubModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowClubModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowClubModal(false)}
-        >
-          <View style={styles.categoryModalContainer}>
-            <Text style={styles.categoryModalTitle}>동아리 선택</Text>
-            {clubs.length > 0 ? (
-              clubs.map((club) => (
+      <Modal visible={showClubModal} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowClubModal(false)}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>동아리 선택</Text>
+            <ScrollView>
+              {clubs.map(club => (
                 <TouchableOpacity
                   key={club.id}
-                  style={[
-                    styles.categoryOption,
-                    selectedClubId === club.id && styles.categoryOptionActive,
-                  ]}
+                  style={styles.optionItem}
                   onPress={() => {
                     setSelectedClubId(club.id);
                     setSelectedClubName(club.clubName);
                     setShowClubModal(false);
                   }}
-                  activeOpacity={0.7}
                 >
-                  <Text
-                    style={[
-                      styles.categoryOptionText,
-                      selectedClubId === club.id && styles.categoryOptionTextActive,
-                    ]}
-                  >
-                    {club.clubName}
-                  </Text>
+                  <Text style={styles.optionText}>{club.clubName}</Text>
                 </TouchableOpacity>
-              ))
-            ) : (
-              <View style={{ padding: 20, alignItems: 'center' }}>
-                <Text style={{ color: theme.colors.textSecondary }}>가입한 동아리가 없습니다.</Text>
-              </View>
-            )}
+              ))}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -220,13 +325,8 @@ const FreeBoardWriteScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-export default FreeBoardWriteScreen;
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: theme.colors.bodyBg,
-  },
+  safeArea: { flex: 1, backgroundColor: theme.colors.white },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -235,236 +335,68 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.borderColor,
-    backgroundColor: theme.colors.bodyBg,
   },
-  headerButtonText: {
-    fontSize: 22,
-    color: theme.colors.textPrimary,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
-  headerSubmitText: {
-    fontSize: 16,
-    color: theme.colors.primary,
-    fontWeight: '600',
-  },
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 20,
-    paddingTop: 24,
-  },
-  topSection: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
+  headerButtonText: { fontSize: 22, color: theme.colors.textPrimary },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.textPrimary },
+  headerSubmitText: { fontSize: 16, color: theme.colors.primary, fontWeight: '700' },
+  topSection: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
   categoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: theme.colors.cardBg,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderColor,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flex: 1,
-  },
-  categoryButtonText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: theme.colors.textPrimary,
-  },
-  placeholder: {
-    color: theme.colors.textLight,
-  },
-  dropdownIcon: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-  },
-  titleInput: {
-    flex: 2,
-    backgroundColor: theme.colors.cardBg,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderColor,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: theme.colors.textPrimary,
-  },
-  toolbar: {
-    backgroundColor: theme.colors.cardBg,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderColor,
-    borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  toolRowSpaced: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-  },
-  toolRowAlign: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  toolbarDivider: {
-    height: 1,
-    backgroundColor: theme.colors.borderColor,
-    marginVertical: 12,
-  },
-  toolSectionLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
-  toolButtonLarge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: theme.colors.bodyBg,
-    borderWidth: 1,
-    borderColor: theme.colors.borderColor,
-  },
-  toolButtonStyle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 8,
-    minWidth: 60,
-    justifyContent: 'center',
-    backgroundColor: theme.colors.bodyBg,
-    borderWidth: 1,
-    borderColor: theme.colors.borderColor,
-  },
-  toolButtonActive: {
-    backgroundColor: theme.colors.primaryLight,
-    borderColor: theme.colors.primary,
-  },
-  toolText: {
-    fontSize: 13,
-    color: theme.colors.textPrimary,
-  },
-  toolDropdown: {
-    fontSize: 10,
-    color: theme.colors.textSecondary,
-    marginLeft: 4,
-  },
-  toolTextBold: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: theme.colors.textPrimary,
-    marginRight: 4,
-  },
-  toolTextItalic: {
-    fontSize: 15,
-    fontStyle: 'italic',
-    color: theme.colors.textPrimary,
-    marginRight: 4,
-  },
-  toolTextUnderline: {
-    fontSize: 15,
-    textDecorationLine: 'underline',
-    color: theme.colors.textPrimary,
-    marginRight: 4,
-  },
-  toolTextStrike: {
-    fontSize: 15,
-    textDecorationLine: 'line-through',
-    color: theme.colors.textPrimary,
-    marginRight: 4,
-  },
-  toolLabel: {
-    fontSize: 11,
-    color: theme.colors.textSecondary,
-  },
-  toolTextActive: {
-    color: theme.colors.primary,
-  },
-  alignButtonGroup: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  alignButton: {
+    backgroundColor: '#F8F8F8',
     padding: 12,
-    backgroundColor: theme.colors.bodyBg,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 50,
-    borderWidth: 1,
-    borderColor: theme.colors.borderColor,
+    marginBottom: 12,
   },
-  alignButtonActive: {
-    backgroundColor: theme.colors.primaryLight,
-    borderColor: theme.colors.primary,
-  },
-  alignIcon: {
-    fontSize: 16,
-    color: theme.colors.textPrimary,
-  },
-  contentInput: {
-    backgroundColor: theme.colors.cardBg,
-    borderWidth: 1.5,
-    borderColor: theme.colors.borderColor,
-    borderRadius: 10,
-    padding: 16,
-    fontSize: 15,
-    color: theme.colors.textPrimary,
-    minHeight: 400,
-  },
-  modalOverlay: {
+  categoryButtonText: { fontSize: 15, color: theme.colors.textPrimary },
+  placeholder: { color: theme.colors.textLight },
+  titleInput: { fontSize: 20, fontWeight: '700', color: theme.colors.textPrimary, paddingVertical: 8 },
+  toolbar: { backgroundColor: '#F8F8F8', borderBottomWidth: 1, borderBottomColor: theme.colors.borderColor },
+  editorWrapper: { 
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'relative', // Relative positioning for absolute children (pickers)
   },
-  categoryModalContainer: {
-    width: '80%',
-    backgroundColor: theme.colors.cardBg,
-    borderRadius: 16,
-    padding: 20,
+  editor: { flex: 1 },
+  inlinePickerContainer: {
+    position: 'absolute',
+    top: 0, // Position at the top of the editor area
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    padding: 16,
+    borderBottomWidth: 1, // Bottom border instead of top
+    borderBottomColor: '#DDD',
+    zIndex: 1000, // High zIndex to stay above everything
+    elevation: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  categoryModalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: theme.colors.textPrimary,
-    marginBottom: 16,
-    textAlign: 'center',
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  categoryOption: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 8,
+  pickerTitle: { fontSize: 14, fontWeight: '700', color: theme.colors.textSecondary },
+  sizeList: { paddingVertical: 8 },
+  sizeOption: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#F0F0F0',
+    borderRadius: 20,
+    marginRight: 10,
   },
-  categoryOptionActive: {
-    backgroundColor: theme.colors.bodyBg,
-  },
-  categoryOptionText: {
-    fontSize: 15,
-    color: theme.colors.textPrimary,
-    textAlign: 'center',
-  },
-  categoryOptionTextActive: {
-    fontWeight: '600',
-    color: theme.colors.primary,
-  },
+  sizeOptionText: { fontSize: 14, color: theme.colors.textPrimary },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  modalContainer: { width: '80%', backgroundColor: 'white', borderRadius: 16, padding: 20 },
+  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 16, textAlign: 'center' },
+  optionItem: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  optionText: { fontSize: 16, textAlign: 'center', color: theme.colors.textPrimary },
+  colorGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 },
+  colorOption: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#DDD' },
 });
+
+export default FreeBoardWriteScreen;

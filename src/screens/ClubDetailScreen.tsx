@@ -137,11 +137,40 @@ const ClubDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     fetchClubDetail();
   }, [fetchClubDetail]);
 
-  const handleJoinClub = () => {
-    // Note: This would be a POST request in a real app.
-    Alert.alert('가입', '동아리에 가입 신청을 보냈습니다.');
-    setIsMember(true); // Optimistic update
+  const handleJoinClub = async () => {
+    if (!token) {
+      Alert.alert('오류', '로그인이 필요합니다.');
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/mobile/club/join/${clubId}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert('실패', data.message || '가입에 실패했습니다.');
+        return;
+      }
+
+      Alert.alert('성공', data.message || '동아리 가입이 완료되었습니다.');
+      setIsMember(true); // ✅ 서버 성공 후에만 상태 변경
+
+    } catch (error) {
+      console.error(error);
+      Alert.alert('오류', '서버와 통신 중 문제가 발생했습니다.');
+    }
   };
+
   
   if (loading) {
     return (

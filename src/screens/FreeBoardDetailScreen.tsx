@@ -41,6 +41,7 @@ type Comment = {
   avatarUrl: string;
   text: string;
   date: string;
+  writerId: number;
 };
 
 const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
@@ -52,13 +53,19 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
-  const [reactionInfo, setReactionInfo] = useState<{ likeCount: number; userReaction: number | null }>({ 
+  const [currentUserId, setCurrentUserId] = useState<number>(0);
+  const [reactionInfo, setReactionInfo] = useState<{ 
+    likeCount: number; 
+    dislikeCount: number; 
+    userReaction: number | null 
+  }>({ 
     likeCount: 0, 
+    dislikeCount: 0,
     userReaction: null 
   });
 
   const fetchPostDetail = useCallback(async () => {
-    setLoading(true);
+    // setLoading(true); // Don't reset loading on every fetch to avoid flicker if just refreshing comments
     try {
       const response = await fetch(`${BASE_URL}/api/mobile/freeboard/${postId}`, {
         headers: {
@@ -69,9 +76,10 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       const data = await response.json();
 
       if (data.success) {
-        const { post, reaction, comments: fetchedComments } = data;
+        const { post, reaction, comments: fetchedComments, currentUserId: fetchedUserId } = data;
 
-        // 게시글 데이터 매핑
+        setCurrentUserId(fetchedUserId);
+
         setPostData({
           id: post.id.toString(),
           category: post.clubName || '자유',
@@ -84,13 +92,12 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           likes: reaction.likeCount || 0,
         });
 
-        // 반응 정보 설정
         setReactionInfo({
           likeCount: reaction.likeCount || 0,
-          userReaction: reaction.userReaction, // 1: like, 2: dislike
+          dislikeCount: reaction.dislikeCount || 0,
+          userReaction: reaction.userReaction,
         });
 
-        // 댓글 데이터 매핑
         if (Array.isArray(fetchedComments)) {
           const mappedComments = fetchedComments.map((c: any) => ({
             id: c.id?.toString() || Math.random().toString(),
@@ -98,6 +105,7 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             avatarUrl: c.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.nickname || 'U')}&background=random`,
             text: c.content,
             date: c.createdAt ? c.createdAt.replace('T', ' ').substring(0, 16) : '',
+            writerId: c.writer,
           }));
           setComments(mappedComments);
         }
@@ -114,14 +122,158 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   }, [postId, token, navigation]);
 
   useEffect(() => {
+    setLoading(true);
     fetchPostDetail();
   }, [fetchPostDetail]);
 
-  const handleAddComment = () => {
-    if (newComment.trim()) {
-      Alert.alert('알림', '댓글 등록 기능은 준비 중입니다.');
-      setNewComment('');
+  const toggleReaction = async (type: 1 | 2) => {
+    if (!currentUserId) {
+      Alert.alert('알림', '로그인이 필요합니다.');
+      return;
     }
+
+    const previousReaction = reactionInfo.userReaction;
+    const previousLikeCount = reactionInfo.likeCount;
+    const previousDislikeCount = reactionInfo.dislikeCount;
+    
+    // Optimistic Update 로직
+    let newLikeCount = previousLikeCount;
+    let newDislikeCount = previousDislikeCount;
+    let newUserReaction: number | null = type;
+
+    if (previousReaction === type) {
+      // 취소 (Delete)
+      newUserReaction = null;
+      if (type === 1) newLikeCount--;
+      else newDislikeCount--;
+    } else {
+      // 새로운 반응 또는 변경
+      if (type === 1) {
+        newLikeCount++;
+        if (previousReaction === 2) newDislikeCount--;
+      } else {
+        newDislikeCount++;
+        if (previousReaction === 1) newLikeCount--;
+      }
+    }
+
+    setReactionInfo({
+      likeCount: newLikeCount,
+      dislikeCount: newDislikeCount,
+      userReaction: newUserReaction,
+    });
+
+    try {
+      let url = '';
+      let method = '';
+      const body: any = { freeboardId: parseInt(postId, 10) };
+
+      if (previousReaction === type) {
+        // 삭제
+        url = `${BASE_URL}/api/mobile/freeboard/reaction/delete`;
+        method = 'DELETE';
+      } else if (previousReaction) {
+        // 수정 (1->2 or 2->1)
+        url = `${BASE_URL}/api/mobile/freeboard/reaction/update`;
+        method = 'PUT';
+        body.reactionType = type;
+      } else {
+        // 등록
+        url = `${BASE_URL}/api/mobile/freeboard/reaction/insert`;
+        method = 'POST';
+        body.reactionType = type;
+      }
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (data.likeCount !== undefined) {
+          setReactionInfo({
+              likeCount: data.likeCount,
+              dislikeCount: data.dislikeCount || 0,
+              userReaction: data.userReaction
+          });
+      }
+
+    } catch (error) {
+      console.error('Reaction error:', error);
+      setReactionInfo({
+        likeCount: previousLikeCount,
+        dislikeCount: previousDislikeCount,
+        userReaction: previousReaction,
+      });
+      Alert.alert('오류', '반응 처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/freeboard/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          freeboard: parseInt(postId, 10),
+          content: newComment,
+          parent: 0,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setNewComment('');
+        fetchPostDetail(); // Refresh comments
+      } else {
+        Alert.alert('실패', data.message || '댓글 등록에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('Add comment error:', error);
+      Alert.alert('오류', '서버 통신 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    Alert.alert('댓글 삭제', '정말 삭제하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const response = await fetch(`${BASE_URL}/api/mobile/freeboard/comment/${commentId}`, {
+              method: 'DELETE',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const data = await response.json();
+            if (data.success) {
+              fetchPostDetail();
+            } else {
+              Alert.alert('실패', data.message);
+            }
+          } catch (error) {
+            console.error('Delete comment error:', error);
+            Alert.alert('오류', '삭제 중 오류가 발생했습니다.');
+          }
+        },
+      },
+    ]);
   };
 
   if (loading) {
@@ -171,6 +323,7 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             <RenderHtml
               contentWidth={width - 40}
               source={{ html: postData.content }}
+              ignoredStyles={['width', 'height', 'lineHeight']} // 인라인 스타일로 인한 짤림 방지
               tagsStyles={{
                 body: {
                   fontSize: 16,
@@ -178,7 +331,6 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                   color: theme.colors.textSecondary,
                 },
                 img: {
-                  maxWidth: '100%',
                   borderRadius: 8,
                   marginVertical: 10,
                 },
@@ -193,17 +345,17 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
           {/* Action Bar */}
           <View style={styles.actionBar}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => toggleReaction(1)}>
               <Text style={styles.actionIcon}>{reactionInfo.userReaction === 1 ? '❤️' : '🤍'}</Text>
               <Text style={styles.actionText}>좋아요 {reactionInfo.likeCount}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} onPress={() => toggleReaction(2)}>
+              <Text style={styles.actionIcon}>{reactionInfo.userReaction === 2 ? '👎' : '👎🏻'}</Text>
+              <Text style={styles.actionText}>싫어요 {reactionInfo.dislikeCount}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.actionIcon}>💬</Text>
               <Text style={styles.actionText}>댓글 {comments.length}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionIcon}>🔖</Text>
-              <Text style={styles.actionText}>저장</Text>
             </TouchableOpacity>
           </View>
 
@@ -217,6 +369,14 @@ const FreeBoardDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                   <Text style={styles.commentText}>{comment.text}</Text>
                   <Text style={styles.commentDate}>{comment.date}</Text>
                 </View>
+                {comment.writerId === currentUserId && (
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteComment(comment.id)}
+                  >
+                    <Text style={styles.deleteButtonText}>✕</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
             {comments.length === 0 && (
@@ -391,6 +551,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: theme.colors.primary,
     fontWeight: '600',
+  },
+  deleteButton: {
+    padding: 8,
+    justifyContent: 'center',
+  },
+  deleteButtonText: {
+    fontSize: 14,
+    color: theme.colors.textLight,
   },
 });
 

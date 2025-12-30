@@ -1,35 +1,106 @@
-// src/screens/MyPage.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import type { FC } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   Image,
   PanResponder,
   Animated,
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../../App';
 import { useUser } from '../context/UserContext';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
+import { BASE_URL } from '../config';
 
 type Props = RootStackScreenProps<'MyPage'>;
 
-// Dummy data for "My Meetings"
-const MY_MEETINGS = [
-  { id: 'm1', title: '정기 독서 토론', clubName: '함께 책 읽기', date: '2025.12.25' },
-  { id: 'm2', title: '야간 러닝 (5km)', clubName: '한강 야간 러닝크루', date: '2025.12.27' },
-  { id: 'm3', title: '크리스마스 케이크 만들기', clubName: '주말 베이킹', date: '2025.12.24' },
-];
+type MyInfo = {
+  id: number;
+  name: string;
+  username: string;
+  nickname: string;
+  province: string;
+  city: string;
+  image: string;
+  grade: string;
+  userUuid: string;
+};
 
+type MyClub = {
+  id: number;
+  clubName: string;
+  clubImg: string;
+  role?: string; // Assume role if available, or default to '멤버'
+};
 
-const MyPage: React.FC<Props> = ({ navigation }) => {
-  const { user } = useUser();
+type MyMeeting = {
+  id: number;
+  title: string;
+  clubName: string;
+  meetingDate: string;
+};
+
+type MyPageData = {
+  myInfo: MyInfo | null;
+  myPosts: any[];
+  myComments: any[];
+  myClubs: MyClub[];
+  recruitmentList: MyMeeting[];
+};
+
+const MyPage: FC<Props> = ({ navigation }) => {
+  const { token } = useUser();
   const [showSideMenu, setShowSideMenu] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'clubs' | 'meetings' | 'posts'>('clubs');
+  const [data, setData] = useState<MyPageData>({
+    myInfo: null,
+    myPosts: [],
+    myComments: [],
+    myClubs: [],
+    recruitmentList: [],
+  });
+
   const hintAnimation = useRef(new Animated.Value(-50)).current;
+
+  const fetchMyPageData = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${BASE_URL}/api/mobile/mypage/info`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const result = await response.json();
+      if (response.ok) {
+        setData({
+          myInfo: result.myInfo || null,
+          myPosts: result.myPosts || [],
+          myComments: result.myComments || [],
+          myClubs: result.myClubs || [],
+          recruitmentList: result.recruitmentList || [],
+        });
+      } else {
+        console.error('Failed to fetch mypage info:', result.error);
+      }
+    } catch (error) {
+      console.error('Error fetching mypage info:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchMyPageData();
+  }, [fetchMyPageData]);
 
   // Side menu hint animation
   useEffect(() => {
@@ -55,11 +126,9 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Start detecting swipe after 10 pixels
         return Math.abs(gestureState.dx) > 10;
       },
       onPanResponderRelease: (evt, gestureState) => {
-        // Open menu if swiped more than 30 pixels to the right
         if (gestureState.dx > 30) {
           setShowSideMenu(true);
         }
@@ -67,9 +136,15 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
     })
   ).current;
 
-  const handleSettings = () => {
-    console.log('설정 클릭');
-  };
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
+        <ActivityIndicator size="large" color="#9B7E5C" />
+      </SafeAreaView>
+    );
+  }
+
+  const { myInfo, myClubs, recruitmentList, myPosts } = data;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -79,9 +154,6 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>마이페이지</Text>
-        <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
-          <Text style={styles.settingsIcon}>⚙️</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView 
@@ -93,15 +165,16 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
         {/* 프로필 섹션 */}
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
-            <View style={styles.profileImage}>
-              <Text style={styles.profileImageText}>프로필 이미지</Text>
-            </View>
+            <Image 
+              source={{ uri: myInfo?.image || 'https://via.placeholder.com/150' }} 
+              style={styles.profileImage} 
+            />
           </View>
 
-          <Text style={styles.nickname}>{user?.name || '닉네임'} 님</Text>
+          <Text style={styles.nickname}>{myInfo?.nickname || myInfo?.name || '사용자'} 님</Text>
           <View style={styles.locationContainer}>
             <Text style={styles.locationIcon}>📍</Text>
-            <Text style={styles.location}>서울시 마포구</Text>
+            <Text style={styles.location}>{myInfo?.province} {myInfo?.city}</Text>
           </View>
         </View>
 
@@ -109,69 +182,117 @@ const MyPage: React.FC<Props> = ({ navigation }) => {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>가입 동아리</Text>
-            <Text style={styles.statValue}>3</Text>
+            <Text style={styles.statValue}>{myClubs.length}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>참여 예정 모임</Text>
-            <Text style={styles.statValue}>2</Text>
+            <Text style={styles.statValue}>{recruitmentList.length}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>작성 글</Text>
-            <Text style={styles.statValue}>5</Text>
+            <Text style={styles.statValue}>{myPosts.length}</Text>
           </View>
         </View>
 
-        {/* 내 동아리 섹션 */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>📋</Text>
-            <Text style={styles.sectionTitle}>내 동아리</Text>
-          </View>
-
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.clubScroll}>
-            {[1, 2, 3].map((item) => (
-              <View key={item} style={styles.clubCard}>
-                <View style={styles.clubImage}>
-                  <Text style={styles.clubImageIcon}>✉️</Text>
-                </View>
-                <Text style={styles.clubName}>환경 동아리</Text>
-                <Text style={styles.clubStatus}>(운영진)</Text>
-              </View>
-            ))}
-            <View style={styles.clubCard}>
-              <View style={styles.clubImage}>
-                <Text style={styles.clubImageIcon}>✉️</Text>
-              </View>
-              <Text style={styles.clubName}>달밤 동아리</Text>
-              <Text style={styles.clubStatus}>(멤버)</Text>
-            </View>
-            <View style={styles.clubCard}>
-              <View style={styles.clubImage}>
-                <Text style={styles.clubImageIcon}>✉️</Text>
-              </View>
-              <Text style={styles.clubName}>서수 동아리</Text>
-              <Text style={styles.clubStatus}>(멤버)</Text>
-            </View>
-          </ScrollView>
+        {/* 탭 버튼 섹션 */}
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'clubs' && styles.activeTabButton]}
+            onPress={() => setActiveTab('clubs')}
+          >
+            <Text style={[styles.tabButtonText, activeTab === 'clubs' && styles.activeTabButtonText]}>내 동아리</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'meetings' && styles.activeTabButton]}
+            onPress={() => setActiveTab('meetings')}
+          >
+            <Text style={[styles.tabButtonText, activeTab === 'meetings' && styles.activeTabButtonText]}>내 모임</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'posts' && styles.activeTabButton]}
+            onPress={() => setActiveTab('posts')}
+          >
+            <Text style={[styles.tabButtonText, activeTab === 'posts' && styles.activeTabButtonText]}>작성 글</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* 내 모임 섹션 */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionIcon}>✅</Text>
-            <Text style={styles.sectionTitle}>내 모임</Text>
-          </View>
-          {MY_MEETINGS.map(meeting => (
-            <TouchableOpacity key={meeting.id} style={styles.myMeetingCard} activeOpacity={0.7}>
-              <View style={styles.myMeetingInfo}>
-                <Text style={styles.myMeetingClubName}>{meeting.clubName}</Text>
-                <Text style={styles.myMeetingTitle}>{meeting.title}</Text>
-              </View>
-              <Text style={styles.myMeetingDate}>{meeting.date}</Text>
-            </TouchableOpacity>
-          ))}
+        {/* 탭 콘텐츠 섹션 */}
+        <View style={styles.tabContent}>
+          {activeTab === 'clubs' && (
+            <View style={styles.clubGrid}>
+              {myClubs.length > 0 ? (
+                myClubs.map((club) => (
+                  <TouchableOpacity
+                    key={club.id}
+                    style={styles.gridClubCard}
+                    onPress={() => navigation.navigate('ClubDetail', { clubId: club.id.toString() })}
+                  >
+                    <Image source={{ uri: club.clubImg || 'https://via.placeholder.com/100x80' }} style={styles.clubImage} />
+                    <Text style={styles.clubName} numberOfLines={1}>{club.clubName}</Text>
+                    <Text style={styles.clubStatus}>({club.role || '멤버'})</Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>가입한 동아리가 없습니다.</Text>
+              )}
+            </View>
+          )}
+
+          {activeTab === 'meetings' && (
+            <View style={styles.section}>
+              {recruitmentList.length > 0 ? (
+                recruitmentList.map(meeting => (
+                  <TouchableOpacity
+                    key={meeting.id}
+                    style={styles.myActivityCard}
+                    activeOpacity={0.7}
+                    onPress={() => navigation.navigate('MeetingDetail', { meetingId: meeting.id.toString(), date: meeting.meetingDate.split(' ')[0] })}
+                  >
+                    <View style={styles.myActivityInfo}>
+                      <Text style={styles.myActivitySubText}>{meeting.clubName}</Text>
+                      <Text style={styles.myActivityTitle} numberOfLines={1}>{meeting.title}</Text>
+                    </View>
+                    <Text style={styles.myActivityDate}>{meeting.meetingDate.split(' ')[0]}</Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={[styles.emptyText, { paddingHorizontal: 20 }]}>참여 예정인 모임이 없습니다.</Text>
+              )}
+            </View>
+          )}
+
+          {activeTab === 'posts' && (
+            <View style={styles.section}>
+              {myPosts.length > 0 ? (
+                myPosts.map((post, index) => (
+                  <TouchableOpacity
+                    key={`${post.postType}-${post.postId}-${index}`}
+                    style={styles.myActivityCard}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      if (post.postType === 'gallery') {
+                        navigation.navigate('GalleryDetail', { postId: post.postId.toString() });
+                      } else {
+                        navigation.navigate('FreeBoardDetail', { postId: post.postId.toString() });
+                      }
+                    }}
+                  >
+                    <View style={styles.myActivityInfo}>
+                      <Text style={styles.myActivitySubText}>
+                        {post.postType === 'gallery' ? '갤러리' : '자유게시판'}
+                      </Text>
+                      <Text style={styles.myActivityTitle} numberOfLines={1}>{post.title}</Text>
+                    </View>
+                    <Text style={styles.myActivityDate}>{post.createdAt.split('T')[0]}</Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={[styles.emptyText, { paddingHorizontal: 20 }]}>작성한 게시글이 없습니다.</Text>
+              )}
+            </View>
+          )}
         </View>
 
       </ScrollView>
@@ -235,12 +356,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#5C4A3A',
   },
-  settingsButton: {
-    padding: 4,
-  },
-  settingsIcon: {
-    fontSize: 24,
-  },
   profileSection: {
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
@@ -257,15 +372,8 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     backgroundColor: '#E8DDD0',
-    justifyContent: 'center',
-    alignItems: 'center',
     borderWidth: 2,
     borderColor: '#D8D0C8',
-  },
-  profileImageText: {
-    fontSize: 12,
-    color: '#8B7355',
-    textAlign: 'center',
   },
   nickname: {
     fontSize: 20,
@@ -292,6 +400,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: 20,
     marginBottom: 12,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTabButton: {
+    borderBottomColor: '#9B7E5C',
+  },
+  tabButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B7355',
+  },
+  activeTabButtonText: {
+    color: '#5C4A3A',
+    fontWeight: '700',
+  },
+  tabContent: {
+    backgroundColor: '#FFFFFF',
+    minHeight: 300,
   },
   statItem: {
     flex: 1,
@@ -331,68 +469,80 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#5C4A3A',
   },
-  clubScroll: {
-    paddingHorizontal: 20,
+  clubGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 15,
+    paddingVertical: 20,
   },
-  clubCard: {
-    width: 120,
-    marginRight: 12,
+  gridClubCard: {
+    width: '33.33%',
     alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 5,
   },
   clubImage: {
-    width: 100,
-    height: 80,
+    width: '100%',
+    height: 70,
     backgroundColor: '#F5EDE4',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 12,
     marginBottom: 8,
     borderWidth: 1,
     borderColor: '#D8D0C8',
   },
-  clubImageIcon: {
-    fontSize: 30,
-  },
   clubName: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: '#5C4A3A',
     textAlign: 'center',
     marginBottom: 2,
   },
   clubStatus: {
-    fontSize: 11,
+    fontSize: 10,
     color: '#8B7355',
   },
-  myMeetingCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginHorizontal: 20,
-    marginBottom: 10,
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-  },
-  myMeetingInfo: {
-    flex: 1,
-  },
-  myMeetingClubName: {
-    fontSize: 12,
-    color: '#8B7355',
-    marginBottom: 4,
-  },
-  myMeetingTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#5C4A3A',
-  },
-  myMeetingDate: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#A67C52',
-  },
-});
+    myActivityCard: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 14,
+      paddingHorizontal: 20,
+      marginHorizontal: 20,
+      marginBottom: 10,
+      backgroundColor: '#FAFAFA',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#E5E5E5',
+    },
+    myActivityInfo: {
+      flex: 1,
+    },
+    myActivitySubText: {
+      fontSize: 12,
+      color: '#8B7355',
+      marginBottom: 4,
+    },
+    myActivityTitle: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: '#5C4A3A',
+    },
+    myActivityDate: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: '#A67C52',
+    },
+    centered: {
+  
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    emptyText: {
+      fontSize: 14,
+      color: '#8B7355',
+      textAlign: 'center',
+      marginTop: 10,
+      width: '100%',
+    },
+  });
+  
