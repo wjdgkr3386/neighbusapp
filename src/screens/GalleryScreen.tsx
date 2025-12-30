@@ -11,8 +11,11 @@ import {
   Platform,
   ActivityIndicator,
   Button,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Picker } from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
@@ -30,12 +33,20 @@ type Post = {
   height: number;
 };
 
+type Club = {
+  id: number;
+  clubName: string;
+};
+
 const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [myClubs, setMyClubs] = useState<Club[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<number>(0);
+  const [showPicker, setShowPicker] = useState(false);
   const { token } = useUser();
 
   const fetchGalleryData = useCallback(() => {
@@ -48,8 +59,9 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
 
-    const keywordParam = searchQuery.trim() ? `?keyword=${encodeURIComponent(searchQuery.trim())}` : '';
-    const url = `${BASE_URL}/api/mobile/gallery/getGallery${keywordParam}`;
+    const keywordParam = searchQuery.trim() ? `&keyword=${encodeURIComponent(searchQuery.trim())}` : '';
+    const clubParam = `&clubId=${selectedClubId}`;
+    const url = `${BASE_URL}/api/mobile/gallery/getGallery?${keywordParam}${clubParam}`;
 
     fetch(url, {
       headers: {
@@ -60,21 +72,23 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
         if (!response.ok) {
           throw new Error('데이터를 불러오는데 실패했습니다. 다시 시도해주세요.');
         }
-        return response.text(); // Get raw text first
+        return response.text();
       })
       .then(text => {
-        console.log("Raw server response:", text); // Log the raw response
         try {
-          const data = JSON.parse(text); // Manually parse the text
+          const data = JSON.parse(text);
           if (data.status === 'success' && data.galleryMapList) {
             const fetchedPosts: Post[] = data.galleryMapList.map((item: any) => ({
               id: item.ID.toString(),
               title: (item.TITLE || '').replace(/&nbsp;/g, ' '),
               author: item.WRITER || 'Unknown',
-              imageUrl: (item.IMAGES && item.IMAGES.length > 0 && item.IMAGES[0].IMG) || `https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800`, // Placeholder
-              height: Math.floor(Math.random() * 100) + 250, // Random height for masonry
+              imageUrl: (item.IMAGES && item.IMAGES.length > 0 && item.IMAGES[0].IMG) || `https://images.unsplash.com/photo-1528493366314-e264e78b4BFd?q=80&w=800`,
+              height: Math.floor(Math.random() * 100) + 250,
             }));
             setPosts(fetchedPosts);
+            if (Array.isArray(data.myClubList)) {
+              setMyClubs(data.myClubList);
+            }
           } else {
             throw new Error('갤러리 데이터를 가져오는데 실패했습니다.');
           }
@@ -88,9 +102,8 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       })
       .finally(() => {
         setLoading(false);
-        
       });
-  }, [token, searchQuery]);
+  }, [token, searchQuery, selectedClubId]);
 
   useEffect(() => {
     fetchGalleryData();
@@ -109,6 +122,12 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
   const handleWritePost = () => navigation.navigate('GalleryWrite');
   const handlePostClick = (post: Post) => navigation.navigate('GalleryDetail', { postId: post.id });
 
+  const getSelectedClubName = () => {
+    if (selectedClubId === 0) return '전체 동아리';
+    const found = myClubs.find(c => c.id === selectedClubId);
+    return found?.clubName || '전체 동아리';
+  };
+
   const renderGalleryItem = ({ item }: { item: Post }) => (
     <TouchableOpacity
       style={[styles.galleryItem, { height: item.height }]}
@@ -118,7 +137,10 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
       <ImageBackground source={{ uri: item.imageUrl }} style={styles.imageBackground}>
         <View style={styles.textOverlay}>
           <Text style={styles.galleryItemTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.galleryItemAuthor}>{item.author}</Text>
+          <View style={styles.authorContainer}>
+            <Icon name="account" size={12} color="rgba(255, 255, 255, 0.9)" style={styles.authorIcon} />
+            <Text style={styles.galleryItemAuthor}>{item.author}</Text>
+          </View>
         </View>
       </ImageBackground>
     </TouchableOpacity>
@@ -159,9 +181,62 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>갤러리</Text>
+        
+        {Platform.OS === 'ios' ? (
+          <>
+            <TouchableOpacity 
+              style={styles.headerPickerWrapper}
+              onPress={() => setShowPicker(true)}
+            >
+              <Text style={styles.pickerText} numberOfLines={1}>
+                {getSelectedClubName()}
+              </Text>
+              <Text style={styles.pickerArrow}>▼</Text>
+            </TouchableOpacity>
+            
+            <Modal
+              visible={showPicker}
+              transparent={true}
+              animationType="slide"
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <TouchableOpacity onPress={() => setShowPicker(false)}>
+                      <Text style={styles.modalDone}>완료</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Picker
+                    selectedValue={selectedClubId}
+                    onValueChange={(itemValue) => setSelectedClubId(itemValue)}
+                    style={styles.iosPicker}
+                  >
+                    <Picker.Item label="전체 동아리" value={0} />
+                    {myClubs.map((club) => (
+                      <Picker.Item key={club.id} label={club.clubName} value={club.id} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+            </Modal>
+          </>
+        ) : (
+          <View style={styles.androidPickerWrapper}>
+            <Picker
+              selectedValue={selectedClubId}
+              onValueChange={(itemValue) => setSelectedClubId(itemValue)}
+              style={styles.picker}
+              dropdownIconColor={theme.colors.primary}
+            >
+              <Picker.Item label="전체 동아리" value={0} />
+              {myClubs.map((club) => (
+                <Picker.Item key={club.id} label={club.clubName} value={club.id} />
+              ))}
+            </Picker>
+          </View>
+        )}
       </View>
 
-      {/* Controls Section */}
       <View style={styles.controlsContainer}>
         <View style={styles.searchInputWrapper}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -179,9 +254,17 @@ const GalleryScreen: React.FC<Props> = ({ navigation }) => {
 
       {renderContent()}
 
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleWritePost}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
+
       <BottomNavBar currentScreen="Gallery" />
 
-<SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
+      <SideMenu visible={showSideMenu} onClose={() => setShowSideMenu(false)} navigation={navigation} />
     </SafeAreaView>
   );
 };
@@ -194,6 +277,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8F0',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
@@ -203,6 +289,69 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: theme.colors.textPrimary,
+  },
+  headerPickerWrapper: {
+    backgroundColor: theme.colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    width: 160,
+    height: 45,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  androidPickerWrapper: {
+    backgroundColor: theme.colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    width: 160,
+    height: 55,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 55,
+    width: '100%',
+    color: theme.colors.textPrimary,
+  },
+  pickerText: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    flex: 1,
+  },
+  pickerArrow: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderColor,
+  },
+  modalDone: {
+    fontSize: 16,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  iosPicker: {
+    height: 200,
+    width: '100%',
   },
   controlsContainer: {
     flexDirection: 'row',
@@ -233,26 +382,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     color: theme.colors.textPrimary,
   },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.borderColor,
-  },
-  sortButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
-  sortButtonIcon: {
-    fontSize: 10,
-    marginLeft: 6,
-    color: theme.colors.textSecondary,
-  },
   galleryList: {
     padding: 8,
     paddingBottom: 100,
@@ -273,23 +402,30 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   textOverlay: {
-    padding: 12,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 14,
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   galleryItemTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
     color: theme.colors.white,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+    marginBottom: 4,
+  },
+  authorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  authorIcon: {
+    marginRight: 4,
   },
   galleryItemAuthor: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 2,
+    fontWeight: '500',
   },
-  
   fab: {
     position: 'absolute',
     right: 25,

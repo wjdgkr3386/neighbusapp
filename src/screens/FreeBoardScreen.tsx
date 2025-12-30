@@ -10,8 +10,11 @@ import {
   Platform,
   PanResponder,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Picker } from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { RootStackScreenProps } from '../../App';
 import SideMenu from '../components/SideMenu';
 import BottomNavBar from '../components/BottomNavBar';
@@ -25,12 +28,17 @@ type Post = {
   id: string;
   category: string;
   title: string;
-  content: string; // API에서 내용을 주지 않으므로 제목으로 대체하거나 비워둠
+  content: string;
   author: string;
   date: string;
   views: number;
-  comments: number; // API 미제공
-  likes: number;    // API 미제공
+  comments: number;
+  likes: number;
+};
+
+type Club = {
+  id: number;
+  clubName: string;
 };
 
 const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
@@ -38,13 +46,17 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
   const [showSideMenu, setShowSideMenu] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [myClubs, setMyClubs] = useState<Club[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<number>(0);
+  const [showPicker, setShowPicker] = useState(false);
   const { token } = useUser();
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const keywordParam = searchQuery.trim() ? `?keyword=${encodeURIComponent(searchQuery.trim())}` : '';
-      const url = `${BASE_URL}/api/mobile/freeboard/list${keywordParam}`;
+      const keywordParam = searchQuery.trim() ? `&keyword=${encodeURIComponent(searchQuery.trim())}` : '';
+      const clubParam = `&clubId=${selectedClubId}`;
+      const url = `${BASE_URL}/api/mobile/freeboard/list?${keywordParam}${clubParam}`;
       
       const response = await fetch(url, {
         headers: {
@@ -54,26 +66,31 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
 
       const data = await response.json();
 
-      if (data.success && Array.isArray(data.posts)) {
-        const mappedPosts: Post[] = data.posts.map((item: any) => ({
-          id: item.id.toString(),
-          category: item.clubName || '자유',
-          title: item.title,
-          content: '', // 목록 API에서 내용 미제공
-          author: item.writerNickname || '익명',
-          date: item.createdAt ? item.createdAt.split('T')[0] : '', // YYYY-MM-DD
-          views: item.viewCount || 0,
-          comments: 0,
-          likes: 0,
-        }));
-        setPosts(mappedPosts);
+      if (data.success) {
+        if (Array.isArray(data.posts)) {
+          const mappedPosts: Post[] = data.posts.map((item: any) => ({
+            id: item.id.toString(),
+            category: item.clubName || '자유',
+            title: item.title,
+            content: '', 
+            author: item.writerNickname || '익명',
+            date: item.createdAt ? item.createdAt.split('T')[0] : '', 
+            views: item.viewCount || 0,
+            comments: item.commentCount || 0,
+            likes: item.likeCount || 0,
+          }));
+          setPosts(mappedPosts);
+        }
+        if (Array.isArray(data.myClubList)) {
+          setMyClubs(data.myClubList);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch freeboard posts:', error);
     } finally {
       setLoading(false);
     }
-  }, [token, searchQuery]);
+  }, [token, searchQuery, selectedClubId]);
 
   useEffect(() => {
     fetchPosts();
@@ -92,23 +109,32 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
   const handleWritePost = () => navigation.navigate('FreeBoardWrite');
   const handlePostClick = (post: Post) => navigation.navigate('FreeBoardDetail', { postId: post.id });
 
+  const getSelectedClubName = () => {
+    if (selectedClubId === 0) return '전체 동아리';
+    const found = myClubs.find(c => c.id === selectedClubId);
+    return found?.clubName || '전체 동아리';
+  };
+
   const renderPostItem = ({ item }: { item: Post }) => (
     <TouchableOpacity
       style={styles.postCard}
       onPress={() => handlePostClick(item)}
       activeOpacity={0.8}
     >
-      <View style={styles.postCardHeader}>
-        <View style={[styles.categoryBadge, { backgroundColor: theme.colors.primaryLight }]}>
-          <Text style={[styles.categoryBadgeText, { color: theme.colors.primary }]}>{item.category}</Text>
-        </View>
+      <View style={styles.categoryBadge}>
+        <Text style={styles.categoryBadgeText}>{item.category}</Text>
       </View>
-      <Text style={styles.postTitle}>{item.title}</Text>
-      <Text style={styles.postSnippet} numberOfLines={2}>{item.content}</Text>
+      <Text style={styles.postTitle} numberOfLines={2}>{item.title}</Text>
+      {item.content ? (
+        <Text style={styles.postSnippet} numberOfLines={2}>{item.content}</Text>
+      ) : null}
       <View style={styles.postCardFooter}>
-        <Text style={styles.authorText}>{item.author} · {item.date}</Text>
+        <View style={styles.authorContainer}>
+          <Icon name="account" size={16} color={theme.colors.textLight} style={styles.authorIcon} />
+          <Text style={styles.authorText}>{item.author} · {item.date}</Text>
+        </View>
         <View style={styles.statsContainer}>
-          <Text style={styles.statText}>♥ {item.likes}</Text>
+          <Text style={styles.statText}>❤️ {item.likes}</Text>
           <Text style={styles.statText}>💬 {item.comments}</Text>
           <Text style={styles.statText}>👁️ {item.views}</Text>
         </View>
@@ -121,6 +147,60 @@ const FreeBoardScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.container} {...panResponder.panHandlers}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>자유게시판</Text>
+          
+          {Platform.OS === 'ios' ? (
+            <>
+              <TouchableOpacity 
+                style={styles.headerPickerWrapper}
+                onPress={() => setShowPicker(true)}
+              >
+                <Text style={styles.pickerText} numberOfLines={1}>
+                  {getSelectedClubName()}
+                </Text>
+                <Text style={styles.pickerArrow}>▼</Text>
+              </TouchableOpacity>
+              
+              <Modal
+                visible={showPicker}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                      <TouchableOpacity onPress={() => setShowPicker(false)}>
+                        <Text style={styles.modalDone}>완료</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Picker
+                      selectedValue={selectedClubId}
+                      onValueChange={(itemValue) => setSelectedClubId(itemValue)}
+                      style={styles.iosPicker}
+                    >
+                      <Picker.Item label="전체 동아리" value={0} />
+                      {myClubs.map((club) => (
+                        <Picker.Item key={club.id} label={club.clubName} value={club.id} />
+                      ))}
+                    </Picker>
+                  </View>
+                </View>
+              </Modal>
+            </>
+          ) : (
+            <View style={styles.androidPickerWrapper}>
+              <Picker
+                selectedValue={selectedClubId}
+                onValueChange={(itemValue) => setSelectedClubId(itemValue)}
+                style={styles.picker}
+                dropdownIconColor={theme.colors.primary}
+              >
+                <Picker.Item label="전체 동아리" value={0} />
+                {myClubs.map((club) => (
+                  <Picker.Item key={club.id} label={club.clubName} value={club.id} />
+                ))}
+              </Picker>
+            </View>
+          )}
         </View>
 
         <View style={styles.controlsContainer}>
@@ -183,6 +263,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
@@ -193,18 +276,77 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: theme.colors.textPrimary,
   },
-  controlsContainer: {
+  headerPickerWrapper: {
+    backgroundColor: theme.colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    width: 160,
+    height: 45,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  androidPickerWrapper: {
+    backgroundColor: theme.colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.borderColor,
+    width: 160,
+    height: 55,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  picker: {
+    height: 55,
+    width: '100%',
+    color: theme.colors.textPrimary,
+  },
+  pickerText: {
+    fontSize: 14,
+    color: theme.colors.textPrimary,
+    flex: 1,
+  },
+  pickerArrow: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderColor,
+  },
+  modalDone: {
+    fontSize: 16,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  iosPicker: {
+    height: 200,
+    width: '100%',
+  },
+  controlsContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    alignItems: 'center',
-    gap: 12,
     backgroundColor: '#FFF8F0',
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.borderColor,
   },
   searchInputWrapper: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: theme.colors.white,
@@ -224,78 +366,69 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     color: theme.colors.textPrimary,
   },
-  sortButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.white,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: theme.colors.borderColor,
-  },
-  sortButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-  },
-  sortButtonIcon: {
-    fontSize: 10,
-    marginLeft: 6,
-    color: theme.colors.textSecondary,
-  },
   listContainer: {
     paddingBottom: 100,
   },
   postCard: {
     backgroundColor: theme.colors.white,
-    padding: 16,
-  },
-  postCardHeader: {
-    flexDirection: 'row',
-    marginBottom: 12,
+    padding: 20,
   },
   categoryBadge: {
+    backgroundColor: '#F5EDE4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
   },
   categoryBadgeText: {
     fontSize: 11,
     fontWeight: '700',
+    color: theme.colors.primary,
   },
   postTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: theme.colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 8,
+    lineHeight: 24,
   },
   postSnippet: {
     fontSize: 14,
     color: theme.colors.textSecondary,
-    lineHeight: 21,
-    marginBottom: 12,
+    lineHeight: 20,
+    marginBottom: 14,
   },
   postCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 4,
+  },
+  authorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  authorIcon: {
+    marginRight: 4,
   },
   authorText: {
     fontSize: 12,
+    fontWeight: '500',
     color: theme.colors.textLight,
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   statText: {
     fontSize: 12,
     color: theme.colors.textLight,
   },
   separator: {
-    height: 8,
-    backgroundColor: '#FFF8F0',
+    height: 1,
+    backgroundColor: '#E8D7C3',
+    marginHorizontal: 16,
   },
   fab: {
     position: 'absolute',
