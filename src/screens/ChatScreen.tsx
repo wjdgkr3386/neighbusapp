@@ -386,7 +386,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
               style={styles.messageAvatar} 
             />
           )}
-          {!item.isMe && !showSenderName && <View style={styles.messageAvatar} />}
+          {!item.isMe && !showSenderName && <View style={[styles.messageAvatar, { backgroundColor: 'transparent' }]} />}
           
           <View style={[styles.messageBubble, item.isMe ? styles.myMessageBubble : styles.otherMessageBubble]}>
             <Text style={item.isMe ? styles.myMessageText : styles.otherMessageText}>
@@ -399,7 +399,11 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const renderChatDetail = () => (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flexOne}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined} 
+      style={styles.flexOne}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
       <View style={styles.chatHeader}>
         <TouchableOpacity onPress={handleBackToList} style={styles.backButton}>
           <Text style={styles.backIcon}>‹</Text>
@@ -418,6 +422,7 @@ const ChatScreen: React.FC<Props> = ({ navigation }) => {
         renderItem={renderMessage} 
         keyExtractor={(item) => item.id} 
         contentContainerStyle={styles.messagesList}
+        style={styles.flexOne}
         ref={flatListRef}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
         onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
