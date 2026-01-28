@@ -20,7 +20,10 @@
 
 </div>
 
----
+---  
+## APK 설치
+https://github.com/wjdgkr3386/neighbusapp/releases
+
 <br/><br/>
 
 ## 프로젝트 개요
